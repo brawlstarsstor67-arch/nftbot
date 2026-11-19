@@ -2,15 +2,18 @@ const tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
 
 let balance = 999999999; 
-let myNfts = [
-    { id: 1, emoji: '🧸', name: 'Мишка', rarity: 'Обычный', bg: 'bg-green', upgraded: false, pinned: true }
-];
+let myNfts = [{ id: 1, emoji: '🧸', name: 'Мишка', rarity: 'Обычный', bg: 'bg-green', upgraded: false, pinned: true }];
 let currentNftId = null;
 let pinnedCount = 0;
 let currentSelectedCase = null;
-
-// ФЕЙКОВЫЙ ФЛАГ АДМИНА (в реальности приходит от бота, но для визуала ок)
 const isAdmin = true; 
+
+// Имитация базы данных лотов
+let marketLots = [
+    { id: 1, emoji: '🎩', name: 'Шляпа', price: 2000, seller: '@vazikonov', bg: 'bg-red', rarity: 'Редкий' },
+    { id: 2, emoji: '🎩', name: 'Шляпа', price: 2500, seller: '@user2', bg: 'bg-blue', rarity: 'Обычный' },
+    { id: 3, emoji: '👑', name: 'Корона', price: 8000, seller: '@user3', bg: 'bg-black', rarity: 'Легенда' }
+];
 
 function send(data) { tg.sendData(JSON.stringify(data)); }
 
@@ -22,7 +25,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     
-    if (btn.dataset.tab === 'market') renderMarket();
+    if (btn.dataset.tab === 'market') renderMarketPage();
     if (btn.dataset.tab === 'topup') renderTopup();
     if (btn.dataset.tab === 'profile') renderProfile();
   };
@@ -31,7 +34,6 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 // --- ПРОФИЛЬ ---
 function renderProfile() {
     document.getElementById('balance-game').innerText = balance + ' ⭐';
-    
     const orbit = document.getElementById('orbit-container');
     orbit.innerHTML = '';
     const pinned = myNfts.filter(n => n.pinned).slice(0, 6); 
@@ -39,10 +41,7 @@ function renderProfile() {
 
     pinned.forEach((nft, index) => {
         const angle = (index / pinned.length) * (Math.PI * 2);
-        const radius = 70;
-        const x = Math.cos(angle) * radius;
-        const y = Math.sin(angle) * radius;
-        
+        const x = Math.cos(angle) * 70; const y = Math.sin(angle) * 70;
         const el = document.createElement('div');
         el.className = `orbit-item ${nft.bg}`;
         el.innerHTML = `<span style="transform: rotate(${-angle}rad);">${nft.emoji}</span>`;
@@ -69,13 +68,8 @@ function openNftModal(nft) {
     document.getElementById('nft-preview-rarity').innerText = nft.rarity;
     document.getElementById('nft-preview-number').innerText = '#' + nft.id;
     document.getElementById('nft-preview-price').innerText = nft.upgraded ? 1000 : 100;
-    
-    const bg = document.getElementById('nft-preview-bg');
-    bg.className = `nft-bg-preview ${nft.bg}`;
-
-    // Показываем кнопку админа
+    document.getElementById('nft-preview-bg').className = `nft-bg-preview ${nft.bg}`;
     document.querySelector('.admin-only').style.display = isAdmin ? 'block' : 'none';
-    
     document.getElementById('modal-nft').classList.remove('hidden');
 }
 
@@ -84,30 +78,17 @@ function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 function upgradeNft() {
     let nft = myNfts.find(n => n.id === currentNftId);
     if (!nft || nft.upgraded) { tg.showAlert('Этот NFT уже улучшен!'); return; }
-    
-    nft.upgraded = true;
-    nft.bg = 'bg-black'; 
-    nft.rarity = 'Легенда';
-    
+    nft.upgraded = true; nft.bg = 'bg-black'; nft.rarity = 'Легенда';
+    document.getElementById('nft-preview-bg').className = `nft-preview-bg bg-black`;
+    renderProfile(); send({ action: 'upgrade_nft', id: nft.id });
     tg.showAlert('✨ Улучшение успешно!');
-    document.getElementById('nft-preview-bg').className = `nft-bg-preview ${nft.bg}`;
-    renderProfile();
-    send({ action: 'upgrade_nft', id: nft.id });
 }
 
 function pinNft() {
     let nft = myNfts.find(n => n.id === currentNftId);
-    if (!nft) return;
-    if (nft.pinned) {
-        nft.pinned = false;
-        tg.showAlert('📌 NFT откреплен.');
-    } else {
-        if (pinnedCount >= 6) { tg.showAlert('❌ Максимум 6 закрепленных NFT!'); return; }
-        nft.pinned = true;
-        tg.showAlert('📌 NFT закреплен.');
-    }
-    renderProfile();
-    closeModal('modal-nft');
+    if (nft.pinned) { nft.pinned = false; tg.showAlert('Откреплен.'); }
+    else { if (pinnedCount >= 6) { tg.showAlert('Максимум 6!'); return; } nft.pinned = true; tg.showAlert('Закреплен.'); }
+    renderProfile(); closeModal('modal-nft');
 }
 
 function sellNft() { 
@@ -119,228 +100,157 @@ function sellNft() {
     }
 }
 
-// --- ВЫБОР ЦВЕТА (АДМИН) ---
 function openColorPicker() {
-    const grid = document.getElementById('color-picker-grid');
-    grid.innerHTML = '';
-    
-    // Все доступные цвета
-    const colors = [
-        { class: 'bg-green', name: 'Зеленый' },
-        { class: 'bg-blue', name: 'Синий' },
-        { class: 'bg-red', name: 'Красный' },
-        { class: 'bg-pink', name: 'Розовый' },
-        { class: 'bg-gold', name: 'Золотой' },
-        { class: 'bg-black', name: 'Черный' },
-        { class: 'bg-rainbow', name: 'Радужный' }
-    ];
-    
+    const grid = document.getElementById('color-picker-grid'); grid.innerHTML = '';
+    const colors = [{ class: 'bg-green', name: 'Зеленый' }, { class: 'bg-blue', name: 'Синий' }, { class: 'bg-red', name: 'Красный' }, { class: 'bg-pink', name: 'Розовый' }, { class: 'bg-gold', name: 'Золотой' }, { class: 'bg-black', name: 'Черный' }, { class: 'bg-rainbow', name: 'Радужный' }];
     colors.forEach(c => {
-        const div = document.createElement('div');
-        div.className = `color-btn ${c.class}`;
-        div.title = c.name;
+        const div = document.createElement('div'); div.className = `color-btn ${c.class}`; div.title = c.name;
         div.onclick = () => {
             let nft = myNfts.find(n => n.id === currentNftId);
             nft.bg = c.class;
-            document.getElementById('nft-preview-bg').className = `nft-bg-preview ${nft.bg}`;
-            renderProfile();
-            closeModal('modal-color-picker');
-            send({ action: 'admin_set_bg', id: nft.id, bg: c.class });
-            tg.showAlert(`✅ Фон изменен на ${c.name}`);
+            document.getElementById('nft-preview-bg').className = `nft-preview-bg ${nft.bg}`;
+            renderProfile(); closeModal('modal-color-picker'); send({ action: 'admin_set_bg', id: nft.id, bg: c.class });
         };
         grid.appendChild(div);
     });
-    
-    closeModal('modal-nft');
-    document.getElementById('modal-color-picker').classList.remove('hidden');
+    closeModal('modal-nft'); document.getElementById('modal-color-picker').classList.remove('hidden');
 }
 
 // --- РУЛЕТКА ---
 let isSpinning = false;
 function spinWheel() {
-    if (isSpinning) return;
-    if (balance < 100) { tg.showAlert('❌ Недостаточно звезд!'); return; }
-    
-    isSpinning = true;
-    balance -= 100;
-    renderProfile();
-
-    const wheel = document.getElementById('wheel');
-    const btn = document.getElementById('spin-btn');
+    if (isSpinning || balance < 100) return;
+    isSpinning = true; balance -= 100; renderProfile();
+    const wheel = document.getElementById('wheel'); const btn = document.getElementById('spin-btn');
     btn.innerText = "Крутится...";
-    
-    const extraDegrees = Math.floor(Math.random() * 360) + 1440; 
-    wheel.style.transform = `rotate(${extraDegrees}deg)`;
-
-    setTimeout(() => {
-        btn.innerText = "Крутить (100⭐)";
-        isSpinning = false;
-        send({ action: 'spin_wheel' });
-    }, 4000);
+    wheel.style.transform = `rotate(${Math.floor(Math.random() * 360) + 1440}deg)`;
+    setTimeout(() => { btn.innerText = "Крутить (100⭐)"; isSpinning = false; send({ action: 'spin_wheel' }); }, 4000);
 }
 
-// --- КЕЙСЫ С ПРЕДПРОСМОТРОМ ---
+// --- КЕЙСЫ ---
 const CASES_DATA = [
-  { id: 'basic', name: '🎁 Обычный', price: 100, theme: 'basic', items: '🧸 Мишка (50⭐), 💍 Кольцо (70⭐), 🎩 Шляпа (100⭐), ⭐ Звезда (150⭐), 👑 Корона (1000⭐)' },
-  { id: 'gta6', name: '🚗 GTA 6', price: 500, theme: 'gta', items: '🔫 Пистолет (250⭐), 🚙 Тачка (400⭐), 💵 Деньги (800⭐), 🚁 Вертолёт (2000⭐), 🏰 Особняк (50000⭐)' },
-  { id: 'newyear', name: '🎄 Новый год', price: 300, theme: 'ny', items: '🎄 Ёлка (150⭐), ⛄ Снеговик (200⭐), 🎁 Подарок (400⭐), ❄️ Снежинка (800⭐), 🎅 Дед Мороз (2000⭐)' },
+  { id: 'basic', name: 'Обычный', price: 100, theme: 'basic', items: '🧸 Мишка (50⭐), 💍 Кольцо (70⭐), 🎩 Шляпа (100⭐), ⭐ Звезда (150⭐), 👑 Корона (1000⭐)' },
+  { id: 'gta6', name: 'GTA 6', price: 500, theme: 'gta', items: '🔫 Пистолет (250⭐), 🚙 Тачка (400⭐), 💵 Деньги (800⭐), 🚁 Вертолёт (2000⭐), 🏰 Особняк (50000⭐)' },
+  { id: 'newyear', name: 'Новый год', price: 300, theme: 'ny', items: '🎄 Ёлка (150⭐), ⛄ Снеговик (200⭐), 🎁 Подарок (400⭐), ❄️ Снежинка (800⭐), 🎅 Дед Мороз (2000⭐)' },
 ];
 
 function renderCases() {
-  const grid = document.getElementById('cases-grid');
-  grid.innerHTML = '';
+  const grid = document.getElementById('cases-grid'); grid.innerHTML = '';
   CASES_DATA.forEach(c => {
-    const div = document.createElement('div');
-    div.className = `case-card case-${c.theme}`; 
+    const div = document.createElement('div'); div.className = `case-card case-${c.theme}`;
     div.innerHTML = `<div class="name">${c.name}</div><div class="price">${c.price}⭐</div>`;
-    div.onclick = () => openCasePreview(c);
+    div.onclick = () => { currentSelectedCase = c; document.getElementById('preview-case-name').innerText = c.name; document.getElementById('preview-case-list').innerText = c.items; document.getElementById('preview-case-min-price').innerText = `Мин. цена: ${c.price}⭐`; document.getElementById('modal-case-preview').classList.remove('hidden'); };
     grid.appendChild(div);
   });
-}
-
-function openCasePreview(c) {
-    currentSelectedCase = c;
-    document.getElementById('preview-case-name').innerText = c.name;
-    document.getElementById('preview-case-list').innerText = c.items;
-    document.getElementById('preview-case-min-price').innerText = `Мин. цена: ${c.price}⭐`;
-    document.getElementById('modal-case-preview').classList.remove('hidden');
 }
 
 function confirmBuyCase() {
     closeModal('modal-case-preview');
     if (balance < currentSelectedCase.price) { tg.showAlert('❌ Недостаточно звезд!'); return; }
-    balance -= currentSelectedCase.price;
-    renderProfile();
-    startCaseRoll(currentSelectedCase);
-}
-
-function startCaseRoll(c) {
+    balance -= currentSelectedCase.price; renderProfile();
     document.getElementById('cases-grid').classList.add('hidden');
     document.getElementById('case-roll-container').classList.remove('hidden');
-
-    const tape = document.getElementById('case-tape');
-    tape.innerHTML = '';
-    tape.style.transition = 'none';
-    tape.style.transform = 'translateX(0)';
-    
-    let emojis = [];
-    if (c.theme === 'basic') emojis = ['🧸', '💍', '🎩', '⭐', '👑'];
-    else if (c.theme === 'gta') emojis = ['🔫', '🚙', '💵', '🚁', '🏰'];
-    else if (c.theme === 'ny') emojis = ['🎄', '⛄', '🎁', '❄️', '🎅'];
-
-    for (let i = 0; i < 30; i++) {
-        const item = document.createElement('div');
-        item.className = 'tape-item';
-        item.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-        tape.appendChild(item);
-    }
-
-    setTimeout(() => {
-        tape.style.transition = 'transform 10s ease-out';
-        tape.style.transform = 'translateX(-1200px)'; 
-    }, 100);
-
-    const delay = Math.floor(Math.random() * 5000) + 10000; 
+    const tape = document.getElementById('case-tape'); tape.innerHTML = ''; tape.style.transition = 'none'; tape.style.transform = 'translateX(0)';
+    let emojis = currentSelectedCase.theme === 'basic' ? ['🧸', '💍', '🎩', '⭐', '👑'] : currentSelectedCase.theme === 'gta' ? ['🔫', '🚙', '💵', '🚁', '🏰'] : ['🎄', '⛄', '🎁', '❄️', '🎅'];
+    for (let i = 0; i < 30; i++) { const item = document.createElement('div'); item.className = 'tape-item'; item.innerText = emojis[Math.floor(Math.random() * emojis.length)]; tape.appendChild(item); }
+    setTimeout(() => { tape.style.transition = 'transform 10s ease-out'; tape.style.transform = 'translateX(-1200px)'; }, 100);
     setTimeout(() => {
         document.getElementById('case-roll-container').classList.add('hidden');
         document.getElementById('case-result').classList.remove('hidden');
-        
-        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-        document.getElementById('case-result').innerHTML = `Вы выбили: <span style="font-size: 40px;">${randomEmoji}</span><br><small>Проверьте чат</small>`;
-        
-        const newId = myNfts.length > 0 ? Math.max(...myNfts.map(n => n.id)) + 1 : 1;
-        myNfts.push({ id: newId, emoji: randomEmoji, name: 'Новый', rarity: 'Обычный', bg: 'bg-green', upgraded: false, pinned: false });
-        renderProfile();
-
-        send({ action: 'open_case', case_id: c.id });
-
-        setTimeout(() => {
-            document.getElementById('cases-grid').classList.remove('hidden');
-            document.getElementById('case-result').classList.add('hidden');
-        }, 3000);
-    }, delay);
+        const randEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+        document.getElementById('case-result').innerHTML = `Вы выбили: <span style="font-size: 40px;">${randEmoji}</span><br><small>Проверьте чат</small>`;
+        myNfts.push({ id: Date.now(), emoji: randEmoji, name: 'Новый', rarity: 'Обычный', bg: 'bg-green', upgraded: false, pinned: false });
+        renderProfile(); send({ action: 'open_case', case_id: currentSelectedCase.id });
+        setTimeout(() => { document.getElementById('cases-grid').classList.remove('hidden'); document.getElementById('case-result').classList.add('hidden'); }, 3000);
+    }, 10000);
 }
 
 // --- РЫНОК ---
-function renderMarket() {
+function renderMarketPage() {
+    document.getElementById('market-grid-view').classList.add('hidden');
+    document.getElementById('market-ui').classList.remove('hidden');
+    if (marketLots.length > 0) openMarketItem(marketLots[0].id);
+}
+
+function openMarketItem(id) {
+    const lot = marketLots.find(l => l.id === id);
+    if (!lot) return;
+    
+    document.getElementById('market-preview-emoji').innerText = lot.emoji;
+    document.getElementById('market-preview-bg').className = `market-preview-bg ${lot.bg}`;
+    document.getElementById('market-item-title').innerText = `${lot.name} #${lot.id}`;
+    document.getElementById('market-item-rarity').innerText = lot.rarity;
+
     const list = document.getElementById('market-list');
     list.innerHTML = '';
-    // Имитация: после покупки лот удаляется из массива
-    let lots = [
-        { id: 99, emoji: '👑', name: 'Корона', price: 5000, seller: '@user1', bg: 'bg-red' },
-        { id: 100, emoji: '🚀', name: 'Ракета', price: 10000, seller: '@user2', bg: 'bg-black' }
-    ];
     
-    if (lots.length === 0) {
-        list.innerHTML = '<div class="card" style="text-align:center;">Пусто</div>';
-        return;
-    }
-
-    lots.forEach(lot => {
-        const div = document.createElement('div');
-        div.className = 'market-item';
-        div.innerHTML = `
-            <div class="nft-icon ${lot.bg}">${lot.emoji}</div>
-            <div class="nft-details">
-                <div style="font-weight:bold;">${lot.name} #${lot.id}</div>
-                <div style="font-size:12px; color:gray;">${lot.seller}</div>
+    const sameItems = marketLots.filter(l => l.name === lot.name);
+    
+    sameItems.forEach(l => {
+        let borderClass = 'border-green';
+        if (l.bg === 'bg-red') borderClass = 'border-red';
+        else if (l.bg === 'bg-blue') borderClass = 'border-blue';
+        else if (l.bg === 'bg-gold') borderClass = 'border-gold';
+        else if (l.bg === 'bg-black') borderClass = 'border-black';
+        
+        const row = document.createElement('div');
+        row.className = `market-row ${borderClass}`;
+        row.innerHTML = `
+            <div class="market-row-left">
+                <div class="market-row-icon">${l.emoji}</div>
+                <div class="market-row-info">
+                    <div class="market-row-name">${l.name} #${l.id}</div>
+                    <div class="market-row-seller">${l.seller}</div>
+                </div>
             </div>
-            <div class="nft-price">${lot.price}⭐</div>
+            <div class="market-row-price">${l.price} ⭐</div>
+            <button class="market-buy-btn" onclick="event.stopPropagation(); buyMarketItem(${l.id}, ${l.price})">КУПИТЬ</button>
         `;
-        div.onclick = () => {
-            if (confirm(`Купить ${lot.name} за ${lot.price}⭐?`)) {
-                if (balance >= lot.price) {
-                    balance -= lot.price;
-                    lots = lots.filter(l => l.id !== lot.id); // УДАЛЯЕМ С РЫНКА
-                    renderProfile();
-                    send({ action: 'buy_nft', id: lot.id, price: lot.price });
-                    tg.showAlert('✅ Куплено!');
-                    renderMarket();
-                } else {
-                    tg.showAlert('❌ Недостаточно средств!');
-                }
-            }
-        };
-        list.appendChild(div);
+        row.onclick = () => openMarketItem(l.id);
+        list.appendChild(row);
     });
 }
 
-// --- ПОПОЛНЕНИЕ ---
+function buyMarketItem(id, price) {
+    if (confirm(`Купить NFT за ${price}⭐?`)) {
+        if (balance >= price) {
+            balance -= price;
+            marketLots = marketLots.filter(l => l.id !== id);
+            send({ action: 'buy_nft', id: id, price: price });
+            renderProfile();
+            tg.showAlert('✅ Успешно куплено!');
+            if (marketLots.length > 0) openMarketItem(marketLots[0].id);
+            else renderMarketPage();
+        } else {
+            tg.showAlert('❌ Недостаточно средств!');
+        }
+    }
+}
+
+// --- ПОПОЛНЕНИЕ (С ЗАЯВКОЙ АДМИНУ) ---
 function renderTopup() {
-    const grid = document.getElementById('topup-grid');
-    grid.innerHTML = '';
+    const grid = document.getElementById('topup-grid'); grid.innerHTML = '';
     for (let i = 100; i <= 10000000; i *= 10) { 
-        const btn = document.createElement('div');
-        btn.className = 'card';
-        btn.style.textAlign = 'center';
-        btn.style.cursor = 'pointer';
+        const btn = document.createElement('div'); btn.className = 'card'; btn.style.textAlign = 'center'; btn.style.cursor = 'pointer';
         btn.innerHTML = `<b>${i} ⭐</b>`;
-        btn.onclick = () => tg.showAlert('Напишите админу @vazikonov для покупки!');
-        grid.appendChild(btn);
-        if (i > 1000) i += 900; 
+        btn.onclick = () => {
+            if (confirm(`Отправить заявку на пополнение на ${i} игровых ⭐?`)) {
+                send({ action: 'topup_request', amount: i });
+                tg.showAlert('⏳ Заявка отправлена админу. Ожидайте подтверждения.');
+            }
+        };
+        grid.appendChild(btn); if (i > 1000) i += 900; 
     }
 }
 
 // --- ПРОЧЕЕ ---
 function editPhone() {
     let phone = prompt("Введите номер:", "+7");
-    if (phone) {
-        if (!/^\+7\d+$/.test(phone)) { tg.showAlert("❌ Только цифры и +7."); return; }
-        if (phone === "+999") { tg.showAlert("❌ Номер занят!"); return; }
-        document.getElementById('phone-display').innerText = phone;
-        send({ action: 'update_phone', phone: phone });
-    }
+    if (phone && /^\+7\d+$/.test(phone) && phone !== "+999") {
+        document.getElementById('phone-display').innerText = phone; send({ action: 'update_phone', phone: phone });
+    } else { tg.showAlert("❌ Только цифры и +7. +999 занят."); }
 }
+function editUz() { let uz = prompt("Введите юз:", "@my_username"); if (uz) { document.getElementById('uz-text').innerText = uz; send({action: 'update_uz', uz: uz}); } }
+function editBio() { let bio = prompt("Введите описание:", ""); if (bio) { document.getElementById('bio').innerText = bio; send({action: 'update_bio', bio: bio}); } }
 
-function editUz() { 
-    let uz = prompt("Введите юз:", "@my_username");
-    if (uz) { document.getElementById('uz-text').innerText = uz; send({action: 'update_uz', uz: uz}); }
-}
-function editBio() { 
-    let bio = prompt("Введите описание:", "");
-    if (bio) { document.getElementById('bio').innerText = bio; send({action: 'update_bio', bio: bio}); }
-}
-
-// --- ИНИЦИАЛИЗАЦИЯ ---
-renderCases();
-renderProfile();
+renderCases(); renderProfile();
