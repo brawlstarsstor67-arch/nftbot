@@ -18,17 +18,18 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     const tab = btn.dataset.tab;
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'market') loadMarket(document.querySelector('#market-filters .active')?.textContent || 'Мишка');
   };
 });
 
-/* ===== КЕЙСЫ ===== */
+/* ===== КЕЙСЫ (с предпросмотром) ===== */
 const CASES = [
-  { id: 'basic',   name: 'Обычный',  emoji: '🎁', price: 100 },
-  { id: 'adult',   name: '18+',      emoji: '🔞', price: 1000 },
-  { id: 'newyear', name: 'Новый год', emoji: '🎄', price: 300 },
-  { id: 'gta6',    name: 'GTA 6',    emoji: '🚗', price: 500 },
-  { id: 'cny',     name: 'Кит. НГ',  emoji: '🐉', price: 400 },
-  { id: 'rich',    name: 'Богатый',  emoji: '💎', price: 100000000 },
+  { id: 'basic', name: 'Обычный', emoji: '🎁', price: 100, items: '🧸 Мишка, 💍 Кольцо, 🎩 Шляпа, ⭐ Звезда, 👑 Корона' },
+  { id: 'adult', name: '18+', emoji: '🔞', price: 1000, items: '👅 Язык, 👙 Купальник, 🚬 Сигарета, 🔞 Знак, 👯 Танцор' },
+  { id: 'newyear', name: 'Новый год', emoji: '🎄', price: 300, items: '🎄 Ёлка, ⛄ Снеговик, 🎁 Подарок, ❄️ Снежинка, 🎅 Дед Мороз' },
+  { id: 'gta6', name: 'GTA 6', emoji: '🚗', price: 500, items: '🔫 Пистолет, 🚙 Тачка, 💵 Деньги, 🚁 Вертолёт, 🏰 Особняк' },
+  { id: 'cny', name: 'Кит. НГ', emoji: '🐉', price: 400, items: '🏮 Фонарь, 🐼 Панда, 🐉 Дракон, 🪙 Монета, 👑 Император' },
+  { id: 'rich', name: 'Богатый', emoji: '💎', price: 100000000, items: '💎 Алмаз, 👑 Корона, 🚀 Ракета, 💠 Джекпот' },
 ];
 
 function renderCases() {
@@ -43,7 +44,7 @@ function renderCases() {
       <div class="price">${c.price.toLocaleString()}⭐</div>
     `;
     div.onclick = () => {
-      if (confirm(`Открыть ${c.name} за ${c.price}⭐?`)) {
+      if (confirm(`Кейс "${c.name}" за ${c.price}⭐\n\nВозможные подарки:\n${c.items}\n\nОткрыть?`)) {
         send({ action: 'open_case', case_id: c.id, count: 1 });
       }
     };
@@ -72,7 +73,17 @@ function renderMarketFilters() {
 
 function loadMarket(type) {
   const grid = document.getElementById('market-grid');
-  grid.innerHTML = `<div class="card">Загрузка «${type}»...</div>`;
+  // Демо-карточки (пока бот не пришлёт реальные)
+  grid.innerHTML = `
+    <div class="nft-card bg-blue">
+      <div class="emoji">🧸</div>
+      <div class="name">Мишка</div>
+      <div class="number">#1</div>
+      <div class="price-tag">100⭐</div>
+      <button class="btn small" style="margin-top:8px;" onclick="alert('Написать продавцу')">💬</button>
+      <button class="btn small" style="margin-top:4px;" onclick="alert('Купить за 100⭐')">🛒</button>
+    </div>
+  `;
   send({ action: 'market_list', type });
 }
 
@@ -86,5 +97,4 @@ function saveUz() {
 /* ===== ИНИЦИАЛИЗАЦИЯ ===== */
 renderCases();
 renderMarketFilters();
-
 send({ action: 'check_balance' });
