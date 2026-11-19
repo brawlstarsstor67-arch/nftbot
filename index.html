@@ -21,6 +21,7 @@
     <section id="tab-profile" class="tab active">
       <div class="profile-header">
         <div class="avatar-container">
+          <!-- Орбита с подарками -->
           <div class="orbiting-nfts" id="orbit-container"></div>
           <div class="avatar" id="avatar">👤</div>
         </div>
@@ -45,7 +46,18 @@
     <section id="tab-roulette" class="tab">
       <div class="card" style="text-align:center;">
         <h2>🎰 Рулетка</h2>
-        <div id="wheel-display" style="font-size: 60px; margin: 20px 0;">🎯</div>
+        
+        <!-- Визуальное колесо -->
+        <div class="wheel-wrapper">
+            <div class="wheel" id="wheel">
+                <div class="sector win" style="transform: rotate(0deg);">Победа</div>
+                <div class="sector lose" style="transform: rotate(90deg);">Поражение</div>
+                <div class="sector win" style="transform: rotate(180deg);">Победа</div>
+                <div class="sector lose" style="transform: rotate(270deg);">Поражение</div>
+            </div>
+            <div class="wheel-center">🎯</div>
+        </div>
+
         <button id="spin-btn" class="btn primary" onclick="spinWheel()">Крутить (100⭐)</button>
       </div>
     </section>
@@ -54,6 +66,16 @@
     <section id="tab-cases" class="tab">
       <h2>🎁 Кейсы NFT</h2>
       <div id="cases-grid" class="grid"></div>
+      
+      <!-- Лента прокрутки кейса (изначально скрыта) -->
+      <div id="case-roll-container" class="hidden">
+          <h3>Открытие кейса...</h3>
+          <div class="case-tape-wrapper">
+              <div class="case-tape" id="case-tape"></div>
+              <div class="tape-pointer">▼</div>
+          </div>
+          <div id="case-result" class="hidden" style="margin-top: 20px; font-size: 20px; font-weight: bold;"></div>
+      </div>
     </section>
 
     <!-- РЫНОК -->
@@ -64,7 +86,7 @@
   </main>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО NFT (КАК В ТГ) -->
+<!-- МОДАЛЬНОЕ ОКНО NFT -->
 <div id="modal-nft" class="modal hidden">
   <div class="modal-content nft-modal">
     <div class="nft-bg-preview" id="nft-preview-bg">
