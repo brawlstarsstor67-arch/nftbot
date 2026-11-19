@@ -10,73 +10,80 @@
 <body>
 <div id="app">
 
+  <!-- ВЕРХНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
   <header>
-    <div class="logo">🎁 NFT Bot</div>
-    <div id="balance">⭐ 0</div>
+    <button class="nav-btn active" data-tab="roulette">🎰 Рулетка</button>
+    <button class="nav-btn" data-tab="cases">🎁 Кейсы NFT</button>
+    <button class="nav-btn" data-tab="profile">👤 Профиль</button>
+    <button class="nav-btn" data-tab="market">🛒 Рынок</button>
   </header>
 
   <main>
+    <!-- ВКЛАДКА 1: РУЛЕТКА -->
+    <section id="tab-roulette" class="tab active">
+      <div class="card" style="text-align:center;">
+        <h2>🎰 Рулетка</h2>
+        <div style="margin: 20px 0;">
+          <div id="wheel-display" style="font-size: 60px; transition: transform 2s ease-out;">🎯</div>
+        </div>
+        <div class="balance-info">Баланс: <b id="bal-roulette">0</b> ⭐</div>
+        <button class="btn primary" style="margin-top: 15px;" onclick="spinWheel()">Крутить (100⭐)</button>
+      </div>
+    </section>
 
-    <!-- ПРОФИЛЬ -->
-    <section id="tab-profile" class="tab active">
+    <!-- ВКЛАДКА 2: КЕЙСЫ -->
+    <section id="tab-cases" class="tab">
+      <h2>🎁 Кейсы NFT</h2>
+      <div class="card">Здесь будет прокрутка кейсов (в следующем обновлении)</div>
+    </section>
+
+    <!-- ВКЛАДКА 3: ПРОФИЛЬ -->
+    <section id="tab-profile" class="tab">
       <div class="profile-card">
-        <div class="avatar" id="avatar">👤</div>
+        <div class="avatar" id="avatar" onclick="editProfile('avatar')">👤</div>
         <div class="info">
-          <div id="username">@user</div>
-          <div id="bio" class="bio">Описание</div>
-          <div id="premium-badge" class="badge hidden">👑</div>
+          <div id="username" style="font-size: 18px; font-weight: bold;" onclick="editProfile('name')">Твой Ник</div>
+          <div id="bio" class="bio" onclick="editProfile('bio')">Нажми, чтобы изменить описание</div>
+          <div id="premium-badge" class="badge hidden">👑 Premium</div>
         </div>
       </div>
 
+      <!-- БАЛАНСЫ (перенесено из бота) -->
       <div class="card">
-        <h3>💰 Баланс</h3>
-        <div id="balance-big" class="big">0 ⭐</div>
+        <h3>💰 Игровой баланс</h3>
+        <div id="balance-game" class="big">0 ⭐</div>
+        <small style="color: gray;">Тратится на кейсы и рулетку</small>
       </div>
 
       <div class="card">
-        <h3>✏️ Юз</h3>
-        <input id="uz-input" placeholder="текст юза" maxlength="30">
-        <button class="btn primary" onclick="saveUz()">Сохранить</button>
+        <h3>💳 Баланс для вывода</h3>
+        <div id="balance-withdraw" class="big" style="color: #2ecc71;">0 ⭐</div>
+        <small style="color: gray;">Получен с продажи NFT. Вывод раз в неделю через гаранта.</small>
       </div>
 
+      <!-- ВИТРИНА -->
       <div class="card">
-        <h3>🎁 Мои подарки</h3>
-        <div id="my-nfts" class="grid"></div>
-      </div>
-
-      <div class="card">
-        <h3>📤 Мои лоты</h3>
-        <div id="my-lots" class="grid"></div>
+        <h3>🏆 Моя витрина (Закрепленные NFT)</h3>
+        <div id="showcase" class="grid">
+          <div class="nft-card bg-green"><div class="emoji">🧸</div><div class="name">Мишка</div></div>
+          <div class="nft-card bg-red"><div class="emoji">🎩</div><div class="name">Шляпа</div></div>
+        </div>
       </div>
     </section>
 
-    <!-- КЕЙСЫ -->
-    <section id="tab-cases" class="tab">
-      <h2>🎁 Кейсы</h2>
-      <div id="cases-grid" class="grid"></div>
-    </section>
-
-    <!-- РЫНОК -->
+    <!-- ВКЛАДКА 4: РЫНОК -->
     <section id="tab-market" class="tab">
       <h2>🛒 Рынок</h2>
-      <div id="market-filters" class="filters"></div>
-      <div id="market-grid" class="grid"></div>
+      <div class="filters" id="market-filters">
+        <button class="active">🧸 Мишки</button>
+        <button>💍 Кольца</button>
+        <button>🎩 Шляпы</button>
+      </div>
+      <div class="card" style="text-align:center; padding: 30px;">
+        Выбери категорию для просмотра
+      </div>
     </section>
-
-    <!-- ЧАТЫ -->
-    <section id="tab-chats" class="tab">
-      <h2>💬 Чаты</h2>
-      <div id="chats-list"></div>
-    </section>
-
   </main>
-
-  <nav>
-    <button class="nav-btn active" data-tab="profile"><span>👤</span><small>Профиль</small></button>
-    <button class="nav-btn" data-tab="cases"><span>🎁</span><small>Кейсы</small></button>
-    <button class="nav-btn" data-tab="market"><span>🛒</span><small>Рынок</small></button>
-    <button class="nav-btn" data-tab="chats"><span>💬</span><small>Чаты</small></button>
-  </nav>
 
 </div>
 <script src="app.js"></script>
