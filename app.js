@@ -1,7 +1,7 @@
 const tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
 
-let myNfts = []; // Сюда бот пришлет твои NFT (пока имитируем)
+let myNfts = []; 
 let currentNftId = null;
 
 function send(data) { tg.sendData(JSON.stringify(data)); }
@@ -21,7 +21,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 
 // --- ОТРИСОВКА ПРОФИЛЯ И КРУЖАЩИХ NFT ---
 function renderProfile() {
-    // Имитация: создаем 3 NFT для орбиты
+    // Тестовые NFT (пока бот не пришлет реальные)
     myNfts = [
         { id: 1, emoji: '🧸', name: 'Мишка', rarity: 'Обычный', price: 50 },
         { id: 2, emoji: '🎩', name: 'Шляпа', rarity: 'Редкий', price: 100 },
@@ -31,10 +31,9 @@ function renderProfile() {
     const orbit = document.getElementById('orbit-container');
     orbit.innerHTML = '';
     
-    // Ставим иконки по кругу
     myNfts.forEach((nft, index) => {
         const angle = (index / myNfts.length) * (Math.PI * 2);
-        const radius = 70; // радиус круга
+        const radius = 70;
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
         
@@ -45,7 +44,6 @@ function renderProfile() {
         orbit.appendChild(el);
     });
 
-    // Отрисовка карточек в профиле
     const grid = document.getElementById('my-nfts');
     grid.innerHTML = '';
     myNfts.forEach(nft => {
@@ -66,9 +64,8 @@ function openNftModal(nft) {
     document.getElementById('nft-preview-number').innerText = '#' + nft.id;
     document.getElementById('nft-preview-price').innerText = nft.price;
     
-    // Красим фон в зависимости от редкости
     const bg = document.getElementById('nft-preview-bg');
-    bg.className = 'nft-bg-preview bg-green'; // По умолчанию
+    bg.className = 'nft-bg-preview bg-green'; 
     if(nft.rarity === 'Редкий') bg.className = 'nft-bg-preview bg-blue';
     if(nft.rarity === 'Легенда' || nft.rarity === 'Эпик') bg.className = 'nft-bg-preview bg-red';
     
