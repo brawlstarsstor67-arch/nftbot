@@ -3,7 +3,8 @@ tg.ready(); tg.expand();
 
 let myNfts = [
     { id: 1, emoji: '🧸', name: 'Мишка', rarity: 'Обычный', price: 50, bg: 'bg-green' },
-    { id: 2, emoji: '🎩', name: 'Шляпа', rarity: 'Редкий', price: 100, bg: 'bg-blue' }
+    { id: 2, emoji: '🎩', name: 'Шляпа', rarity: 'Редкий', price: 100, bg: 'bg-blue' },
+    { id: 3, emoji: '👑', name: 'Корона', rarity: 'Легенда', price: 500, bg: 'bg-black' }
 ];
 let currentNftId = null;
 let isSpinning = false;
@@ -51,7 +52,7 @@ function renderProfile() {
     });
 }
 
-// --- ОКНО NFT И УЛУЧШЕНИЕ ---
+// --- МОДАЛЬНОЕ ОКНО NFT ---
 function openNftModal(nft) {
     currentNftId = nft.id;
     document.getElementById('nft-preview-emoji').innerText = nft.emoji;
@@ -69,7 +70,6 @@ function openNftModal(nft) {
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
 function upgradeNft() {
-    // Имитация улучшения внутри приложения
     let nft = myNfts.find(n => n.id === currentNftId);
     if (!nft) return;
 
@@ -78,7 +78,7 @@ function upgradeNft() {
         return;
     }
 
-    // Меняем фон (визуально)
+    // Меняем фон
     if (nft.bg === 'bg-green') { nft.bg = 'bg-blue'; nft.rarity = 'Редкий'; }
     else if (nft.bg === 'bg-blue') { nft.bg = 'bg-red'; nft.rarity = 'Эпик'; }
     else if (nft.bg === 'bg-red') { nft.bg = 'bg-black'; nft.rarity = 'Легенда'; }
@@ -98,12 +98,11 @@ function sellNft() {
     }
 }
 
-// --- РЫНОК ---
+// --- РЫНОК (Демо-лоты, пока нет сервера) ---
 function renderMarket() {
     const grid = document.getElementById('market-grid');
     grid.innerHTML = '';
     
-    // Тестовые лоты для визуализации
     const lots = [
         { emoji: '👑', name: 'Корона', price: 5000, seller: 'user123', bg: 'bg-red' },
         { emoji: '🚀', name: 'Ракета', price: 10000, seller: 'user456', bg: 'bg-black' }
@@ -122,10 +121,11 @@ function renderMarket() {
     });
 }
 
-// --- КЕЙСЫ (Анимация) ---
+// --- КЕЙСЫ ---
 const CASES_DATA = [
   { id: 'basic', name: '🎁 Обычный', price: 100 },
   { id: 'adult', name: '🔞 18+', price: 1000 },
+  { id: 'newyear', name: '🎄 Новый год', price: 300 },
 ];
 function renderCases() {
   const grid = document.getElementById('cases-grid');
@@ -142,30 +142,29 @@ function renderCases() {
   });
 }
 
-// --- РУЛЕТКА (Анимация) ---
+// --- РУЛЕТКА ---
 function spinWheel() {
     if (isSpinning) return;
     isSpinning = true;
     
     const btn = document.getElementById('spin-btn');
+    const wheel = document.getElementById('wheel-display');
     btn.innerText = "Крутится...";
     btn.style.opacity = "0.5";
 
-    // Визуальная анимация
     let count = 0;
     const interval = setInterval(() => {
         count++;
-        btn.innerText = count % 2 === 0 ? "🎰 ..." : "🎯 ...";
+        wheel.style.transform = `rotate(${count * 45}deg)`;
         if (count > 10) {
             clearInterval(interval);
             btn.innerText = "Крутить (100⭐)";
             btn.style.opacity = "1";
             isSpinning = false;
             
-            // Отправляем боту
             send({ action: 'spin_wheel' });
         }
-    }, 200);
+    }, 100);
 }
 
 // --- ИНИЦИАЛИЗАЦИЯ ---
