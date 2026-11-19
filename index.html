@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFT Bot</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="logo">🎁 NFT Bot</div>
+    <div id="balance">⭐ 0</div>
+  </header>
+
+  <main>
+
+    <!-- ПРОФИЛЬ -->
+    <section id="tab-profile" class="tab active">
+      <div class="profile-card">
+        <div class="avatar" id="avatar">👤</div>
+        <div class="info">
+          <div id="username">@user</div>
+          <div id="bio" class="bio">Описание</div>
+          <div id="premium-badge" class="badge hidden">👑</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>💰 Баланс</h3>
+        <div id="balance-big" class="big">0 ⭐</div>
+      </div>
+
+      <div class="card">
+        <h3>✏️ Юз</h3>
+        <input id="uz-input" placeholder="текст юза" maxlength="30">
+        <button class="btn primary" onclick="saveUz()">Сохранить</button>
+      </div>
+
+      <div class="card">
+        <h3>🎁 Мои подарки</h3>
+        <div id="my-nfts" class="grid"></div>
+      </div>
+
+      <div class="card">
+        <h3>📤 Мои лоты</h3>
+        <div id="my-lots" class="grid"></div>
+      </div>
+    </section>
+
+    <!-- КЕЙСЫ -->
+    <section id="tab-cases" class="tab">
+      <h2>🎁 Кейсы</h2>
+      <div id="cases-grid" class="grid"></div>
+    </section>
+
+    <!-- РЫНОК -->
+    <section id="tab-market" class="tab">
+      <h2>🛒 Рынок</h2>
+      <div id="market-filters" class="filters"></div>
+      <div id="market-grid" class="grid"></div>
+    </section>
+
+    <!-- ЧАТЫ -->
+    <section id="tab-chats" class="tab">
+      <h2>💬 Чаты</h2>
+      <div id="chats-list"></div>
+    </section>
+
+  </main>
+
+  <nav>
+    <button class="nav-btn active" data-tab="profile"><span>👤</span><small>Профиль</small></button>
+    <button class="nav-btn" data-tab="cases"><span>🎁</span><small>Кейсы</small></button>
+    <button class="nav-btn" data-tab="market"><span>🛒</span><small>Рынок</small></button>
+    <button class="nav-btn" data-tab="chats"><span>💬</span><small>Чаты</small></button>
+  </nav>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
