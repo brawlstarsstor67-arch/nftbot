@@ -141,3 +141,15 @@ header {
 .bg-blue { background: linear-gradient(135deg, #2980b9, #21618c); }
 .bg-red { background: linear-gradient(135deg, #c0392b, #922b21); }
 .bg-black { background: linear-gradient(135deg, #000, #2c3e50); color: #f1c40f; }
+/* Модальные окна */
+.modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+  z-index: 100;
+}
+.modal.hidden { display: none; }
+.modal-content {
+  background: var(--bg2); padding: 20px; border-radius: 16px;
+  width: 85%; max-width: 350px; animation: pop 0.3s ease-out;
+}
+@keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
