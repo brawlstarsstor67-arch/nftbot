@@ -9,22 +9,46 @@
 </head>
 <body>
 <div id="app">
-  <!-- ВЕРХНЕЕ МЕНЮ -->
   <header>
-    <button class="nav-btn active" data-tab="roulette">🎰 Рулетка</button>
-    <button class="nav-btn" data-tab="cases">🎁 Кейсы NFT</button>
-    <button class="nav-btn" data-tab="profile">👤 Профиль</button>
+    <button class="nav-btn active" data-tab="profile">👤 Профиль</button>
+    <button class="nav-btn" data-tab="roulette">🎰 Рулетка</button>
+    <button class="nav-btn" data-tab="cases">🎁 Кейсы</button>
     <button class="nav-btn" data-tab="market">🛒 Рынок</button>
   </header>
 
   <main>
+    <!-- ПРОФИЛЬ -->
+    <section id="tab-profile" class="tab active">
+      <div class="profile-header">
+        <!-- Круглая аватарка и кружащие NFT -->
+        <div class="avatar-container">
+          <div class="orbiting-nfts" id="orbit-container">
+            <!-- Сюда JS добавит кружащие NFT -->
+          </div>
+          <div class="avatar" id="avatar">👤</div>
+        </div>
+        <h2 id="username">Твой Ник</h2>
+        <div id="premium-badge" class="badge hidden">👑 Premium</div>
+        <div id="bio" class="bio">Описание профиля</div>
+        <div class="uz-display" id="uz-text" style="color: #f1c40f;">Мой юз</div>
+      </div>
+
+      <div class="card">
+        <h3>💰 Игровой баланс</h3>
+        <div id="balance-game" class="big">0 ⭐</div>
+      </div>
+
+      <div class="card">
+        <h3>🏆 Мои подарки</h3>
+        <div id="my-nfts" class="grid"></div>
+      </div>
+    </section>
+
     <!-- РУЛЕТКА -->
-    <section id="tab-roulette" class="tab active">
+    <section id="tab-roulette" class="tab">
       <div class="card" style="text-align:center;">
         <h2>🎰 Рулетка</h2>
-        <div style="margin: 20px 0;"><div id="wheel-display" style="font-size: 60px;">🎯</div></div>
-        <div class="balance-info">Баланс: <b id="bal-roulette">0</b> ⭐</div>
-        <button class="btn primary" style="margin-top: 15px;" onclick="spinWheel()">Крутить (100⭐)</button>
+        <button class="btn primary" onclick="spinWheel()">Крутить (100⭐)</button>
       </div>
     </section>
 
@@ -34,56 +58,33 @@
       <div id="cases-grid" class="grid"></div>
     </section>
 
-    <!-- ПРОФИЛЬ -->
-    <section id="tab-profile" class="tab">
-      <div class="profile-card">
-        <div class="avatar" id="avatar">👤</div>
-        <div class="info">
-          <div id="username" style="font-size: 18px; font-weight: bold;">Твой Ник</div>
-          <div id="bio" class="bio">Описание</div>
-        </div>
-      </div>
-      <div class="card">
-        <h3>💰 Игровой баланс</h3>
-        <div id="balance-game" class="big">0 ⭐</div>
-      </div>
-      <div class="card">
-        <h3>🏆 Витрина</h3>
-        <div id="showcase" class="grid"></div>
-      </div>
-    </section>
-
     <!-- РЫНОК -->
     <section id="tab-market" class="tab">
       <h2>🛒 Рынок</h2>
-      <div class="card">В разработке...</div>
+      <div id="market-grid" class="grid"></div>
     </section>
   </main>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО: ПРЕДПРОСМОТР КЕЙСА -->
-<div id="modal-case" class="modal hidden">
-  <div class="modal-content">
-    <h3 id="modal-case-title">Кейс</h3>
-    <div id="modal-case-items" style="margin: 15px 0; font-size: 14px;"></div>
-    <button class="btn primary" onclick="buyCase()">Купить и открыть</button>
-    <button class="btn" style="margin-top: 8px; background: #333;" onclick="closeModal('modal-case')">Отмена</button>
-  </div>
-</div>
-
-<!-- МОДАЛЬНОЕ ОКНО: ИНТЕРФЕЙС NFT (КАК В ТГ) -->
+<!-- МОДАЛЬНОЕ ОКНО NFT (КАК В ТГ) -->
 <div id="modal-nft" class="modal hidden">
-  <div class="modal-content" style="text-align: center;">
-    <div id="nft-icon" style="font-size: 80px; margin-bottom: 10px;">🧸</div>
-    <h3 id="nft-name" style="margin: 0;">Мишка</h3>
-    <div id="nft-rarity" style="color: #f1c40f; font-size: 12px; font-weight: bold; margin-top: 5px;">Обычный</div>
-    <div style="background: #232e3c; padding: 10px; border-radius: 10px; margin: 15px 0; font-size: 13px;">
-      <div>Номер: <b id="nft-number">#1</b></div>
-      <div>Оценка: <b id="nft-price">100</b> ⭐</div>
+  <div class="modal-content nft-modal">
+    <div class="nft-bg-preview" id="nft-preview-bg">
+      <div id="nft-preview-emoji" style="font-size: 100px;">🎁</div>
     </div>
-    <button class="btn primary" onclick="upgradeNft()">✨ Улучшить</button>
-    <button class="btn" style="margin-top: 8px; background: #e74c3c;" onclick="sellNft()">💰 Продать</button>
-    <button class="btn" style="margin-top: 8px; background: #333;" onclick="closeModal('modal-nft')">Закрыть</button>
+    <h2 id="nft-preview-name">Мишка</h2>
+    <div id="nft-preview-rarity" class="rarity-tag">Обычный</div>
+    <div class="nft-info">
+      <div>Номер: <b id="nft-preview-number">#1</b></div>
+      <div>Примерная цена: <b id="nft-preview-price">100</b> ⭐</div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="btn primary" style="flex:1;" onclick="upgradeNft()">✨ Улучшить</button>
+        <button class="btn" style="flex:1; background: #e74c3c;" onclick="sellNft()">💰 Продать</button>
+    </div>
+    
+    <button class="btn" style="margin-top: 15px; background: #333;" onclick="closeModal('modal-nft')">Закрыть</button>
   </div>
 </div>
 
