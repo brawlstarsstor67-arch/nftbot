@@ -2,12 +2,9 @@ const tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
 
 let myNfts = [
-    { id: 1, emoji: '🧸', name: 'Мишка', rarity: 'Обычный', price: 50, bg: 'bg-green' },
-    { id: 2, emoji: '🎩', name: 'Шляпа', rarity: 'Редкий', price: 100, bg: 'bg-blue' },
-    { id: 3, emoji: '👑', name: 'Корона', rarity: 'Легенда', price: 500, bg: 'bg-black' }
+    { id: 1, emoji: '🧸', name: 'Мишка', rarity: 'Обычный', price: 50, bg: 'bg-green' }
 ];
 let currentNftId = null;
-let isSpinning = false;
 
 function send(data) { tg.sendData(JSON.stringify(data)); }
 
@@ -28,9 +25,10 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 function renderProfile() {
     const orbit = document.getElementById('orbit-container');
     orbit.innerHTML = '';
+    
     myNfts.forEach((nft, index) => {
         const angle = (index / myNfts.length) * (Math.PI * 2);
-        const radius = 70;
+        const radius = 60; // Меньше радиус
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
         
@@ -52,7 +50,7 @@ function renderProfile() {
     });
 }
 
-// --- МОДАЛЬНОЕ ОКНО NFT ---
+// --- УЛУЧШЕНИЕ NFT (Смена фона) ---
 function openNftModal(nft) {
     currentNftId = nft.id;
     document.getElementById('nft-preview-emoji').innerText = nft.emoji;
@@ -78,15 +76,21 @@ function upgradeNft() {
         return;
     }
 
-    // Меняем фон
+    // Меняем фон и обновляем карточку прямо на глазах
     if (nft.bg === 'bg-green') { nft.bg = 'bg-blue'; nft.rarity = 'Редкий'; }
     else if (nft.bg === 'bg-blue') { nft.bg = 'bg-red'; nft.rarity = 'Эпик'; }
     else if (nft.bg === 'bg-red') { nft.bg = 'bg-black'; nft.rarity = 'Легенда'; }
 
-    tg.showAlert('✨ Улучшение успешно!');
-    closeModal('modal-nft');
+    tg.showAlert('✨ Улучшение успешно! Фон изменен.');
+    
+    // Обновляем превью
+    const bg = document.getElementById('nft-preview-bg');
+    bg.className = `nft-bg-preview ${nft.bg}`;
+    document.getElementById('nft-preview-rarity').innerText = nft.rarity;
+
+    // Перерисовываем профиль
     renderProfile();
-    send({ action: 'upgrade_nft', id: nft.id }); // Отправляем боту для сохранения
+    send({ action: 'upgrade_nft', id: nft.id });
 }
 
 function sellNft() { 
@@ -98,73 +102,114 @@ function sellNft() {
     }
 }
 
-// --- РЫНОК (Демо-лоты, пока нет сервера) ---
-function renderMarket() {
-    const grid = document.getElementById('market-grid');
-    grid.innerHTML = '';
+// --- РУЛЕТКА (Крутится) ---
+let isSpinning = false;
+function spinWheel() {
+    if (isSpinning) return;
+    isSpinning = true;
     
-    const lots = [
-        { emoji: '👑', name: 'Корона', price: 5000, seller: 'user123', bg: 'bg-red' },
-        { emoji: '🚀', name: 'Ракета', price: 10000, seller: 'user456', bg: 'bg-black' }
-    ];
-    
-    lots.forEach(lot => {
-        const div = document.createElement('div');
-        div.className = `nft-card ${lot.bg}`;
-        div.innerHTML = `
-            <div class="emoji">${lot.emoji}</div>
-            <div class="name">${lot.name}</div>
-            <div style="font-size:10px; color:#aaa;">${lot.price}⭐</div>
-        `;
-        div.onclick = () => tg.showAlert(`Продавец: ${lot.seller}\nЦена: ${lot.price}⭐`);
-        grid.appendChild(div);
-    });
+    const wheel = document.getElementById('wheel');
+    const btn = document.getElementById('spin-btn');
+    btn.innerText = "Крутится...";
+    btn.style.opacity = "0.5";
+
+    // Случайный поворот от 3 до 5 оборотов
+    const extraDegrees = Math.floor(Math.random() * 720) + 1080; 
+    wheel.style.transform = `rotate(${extraDegrees}deg)`;
+
+    setTimeout(() => {
+        btn.innerText = "Крутить (100⭐)";
+        btn.style.opacity = "1";
+        isSpinning = false;
+        send({ action: 'spin_wheel' }); // Отправляем боту реальный результат
+    }, 3000); // Ждем, пока докрутится
 }
 
-// --- КЕЙСЫ ---
+// --- КЕЙСЫ (Лента на 5-15 секунд) ---
 const CASES_DATA = [
   { id: 'basic', name: '🎁 Обычный', price: 100 },
   { id: 'adult', name: '🔞 18+', price: 1000 },
-  { id: 'newyear', name: '🎄 Новый год', price: 300 },
 ];
+
 function renderCases() {
   const grid = document.getElementById('cases-grid');
   grid.innerHTML = '';
   CASES_DATA.forEach(c => {
     const div = document.createElement('div');
     div.className = 'case-card';
-    div.innerHTML = `<div class="emoji">${c.name.split(' ')[0]}</div><div class="name">${c.name}</div><div class="price">${c.price}⭐</div>`;
-    div.onclick = () => { 
-        tg.showAlert(`Вы открыли кейс! (Проверьте Telegram)`);
-        send({ action: 'open_case', case_id: c.id }); 
-    };
+    div.innerHTML = `<div class="name">${c.name}</div><div class="price">${c.price}⭐</div>`;
+    div.onclick = () => startCaseOpening(c.id, c.name, c.price);
     grid.appendChild(div);
   });
 }
 
-// --- РУЛЕТКА ---
-function spinWheel() {
-    if (isSpinning) return;
-    isSpinning = true;
-    
-    const btn = document.getElementById('spin-btn');
-    const wheel = document.getElementById('wheel-display');
-    btn.innerText = "Крутится...";
-    btn.style.opacity = "0.5";
+function startCaseOpening(caseId, caseName, casePrice) {
+    if (!confirm(`Купить кейс ${caseName} за ${casePrice}⭐?`)) return;
 
-    let count = 0;
-    const interval = setInterval(() => {
-        count++;
-        wheel.style.transform = `rotate(${count * 45}deg)`;
-        if (count > 10) {
-            clearInterval(interval);
-            btn.innerText = "Крутить (100⭐)";
-            btn.style.opacity = "1";
-            isSpinning = false;
-            
-            send({ action: 'spin_wheel' });
-        }
+    document.getElementById('cases-grid').classList.add('hidden');
+    document.getElementById('case-roll-container').classList.remove('hidden');
+    document.getElementById('case-result').classList.add('hidden');
+
+    // Заполняем ленту рандомными стикерами
+    const tape = document.getElementById('case-tape');
+    tape.innerHTML = '';
+    tape.style.transition = 'none';
+    tape.style.transform = 'translateX(0)';
+    
+    const emojis = ['🧸', '🎩', '💍', '👑', '⭐'];
+    for (let i = 0; i < 30; i++) {
+        const item = document.createElement('div');
+        item.className = 'tape-item';
+        item.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+        tape.appendChild(item);
+    }
+
+    // Ждем мгновение и запускаем анимацию прокрутки (сдвиг влево)
+    setTimeout(() => {
+        tape.style.transition = 'transform 10s ease-out'; // 10 секунд прокрутки
+        // Сдвигаем так, чтобы центральный элемент оказался под указателем
+        tape.style.transform = 'translateX(-1200px)'; 
     }, 100);
+
+    // Показываем результат через 10-15 секунд
+    const delay = Math.floor(Math.random() * 5000) + 10000; // от 10 до 15 сек
+    setTimeout(() => {
+        document.getElementById('case-roll-container').classList.add('hidden');
+        document.getElementById('case-result').classList.remove('hidden');
+        
+        // Имитация того, что выпал подарок (бот пришлет точные данные в чат)
+        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+        document.getElementById('case-result').innerHTML = `Вы выбили: <span style="font-size: 40px;">${randomEmoji}</span><br><small>Проверьте чат Telegram</small>`;
+        
+        // Добавляем в профиль визуально
+        myNfts.push({ id: Date.now(), emoji: randomEmoji, name: 'Новый NFT', rarity: 'Обычный', price: 100, bg: 'bg-green' });
+        renderProfile();
+
+        send({ action: 'open_case', case_id: caseId }); // Отправляем боту для сохранения в БД
+
+        // Возвращаем кнопку "Назад" через 3 секунды
+        setTimeout(() => {
+            document.getElementById('cases-grid').classList.remove('hidden');
+            document.getElementById('case-roll-container').classList.add('hidden');
+            document.getElementById('case-result').classList.add('hidden');
+        }, 3000);
+    }, delay);
+}
+
+// --- РЫНОК ---
+function renderMarket() {
+    const grid = document.getElementById('market-grid');
+    grid.innerHTML = '';
+    const lots = [
+        { emoji: '👑', name: 'Корона', price: 5000, bg: 'bg-red' },
+        { emoji: '🚀', name: 'Ракета', price: 10000, bg: 'bg-black' }
+    ];
+    lots.forEach(lot => {
+        const div = document.createElement('div');
+        div.className = `nft-card ${lot.bg}`;
+        div.innerHTML = `<div class="emoji">${lot.emoji}</div><div class="name">${lot.name}</div><div style="font-size:10px;">${lot.price}⭐</div>`;
+        grid.appendChild(div);
+    });
 }
 
 // --- ИНИЦИАЛИЗАЦИЯ ---
