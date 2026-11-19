@@ -10,10 +10,11 @@
 <body>
 <div id="app">
   <header>
-    <button class="nav-btn active" data-tab="profile">👤 Профиль</button>
-    <button class="nav-btn" data-tab="roulette">🎰 Рулетка</button>
-    <button class="nav-btn" data-tab="cases">🎁 Кейсы</button>
-    <button class="nav-btn" data-tab="market">🛒 Рынок</button>
+    <button class="nav-btn active" data-tab="profile">👤</button>
+    <button class="nav-btn" data-tab="roulette">🎰</button>
+    <button class="nav-btn" data-tab="cases">🎁</button>
+    <button class="nav-btn" data-tab="market">🛒</button>
+    <button class="nav-btn" data-tab="topup">💳</button>
   </header>
 
   <main>
@@ -21,13 +22,11 @@
     <section id="tab-profile" class="tab active">
       <div class="profile-header">
         <div class="avatar-container">
-          <!-- Орбита с подарками -->
           <div class="orbiting-nfts" id="orbit-container"></div>
           <div class="avatar" id="avatar">👤</div>
         </div>
         <h2 id="username">Твой Ник</h2>
-        <div id="premium-badge" class="badge hidden">👑 Premium</div>
-        <div id="bio" class="bio">Описание профиля</div>
+        <div id="phone-display" class="bio" onclick="editPhone()">📞 Добавить номер</div>
         <div class="uz-display" id="uz-text">Мой юз</div>
       </div>
 
@@ -37,8 +36,8 @@
       </div>
 
       <div class="card">
-        <h3>🏆 Мои подарки</h3>
-        <div id="my-nfts" class="grid"></div>
+        <h3>🏆 Мои подарки (3 в ряд)</h3>
+        <div id="my-nfts" class="grid-3"></div>
       </div>
     </section>
 
@@ -46,18 +45,15 @@
     <section id="tab-roulette" class="tab">
       <div class="card" style="text-align:center;">
         <h2>🎰 Рулетка</h2>
-        
-        <!-- Визуальное колесо -->
         <div class="wheel-wrapper">
             <div class="wheel" id="wheel">
                 <div class="sector win" style="transform: rotate(0deg);">Победа</div>
-                <div class="sector lose" style="transform: rotate(90deg);">Поражение</div>
+                <div class="sector lose" style="transform: rotate(90deg);">Проигрыш</div>
                 <div class="sector win" style="transform: rotate(180deg);">Победа</div>
-                <div class="sector lose" style="transform: rotate(270deg);">Поражение</div>
+                <div class="sector lose" style="transform: rotate(270deg);">Проигрыш</div>
             </div>
-            <div class="wheel-center">🎯</div>
+            <div class="wheel-arrow" id="wheel-arrow">▲</div>
         </div>
-
         <button id="spin-btn" class="btn primary" onclick="spinWheel()">Крутить (100⭐)</button>
       </div>
     </section>
@@ -67,21 +63,26 @@
       <h2>🎁 Кейсы NFT</h2>
       <div id="cases-grid" class="grid"></div>
       
-      <!-- Лента прокрутки кейса (изначально скрыта) -->
       <div id="case-roll-container" class="hidden">
-          <h3>Открытие кейса...</h3>
           <div class="case-tape-wrapper">
               <div class="case-tape" id="case-tape"></div>
               <div class="tape-pointer">▼</div>
           </div>
-          <div id="case-result" class="hidden" style="margin-top: 20px; font-size: 20px; font-weight: bold;"></div>
+          <div id="case-result" class="hidden" style="margin-top: 20px; text-align: center; font-size: 20px; font-weight: bold;"></div>
       </div>
     </section>
 
     <!-- РЫНОК -->
     <section id="tab-market" class="tab">
-      <h2>🛒 Рынок</h2>
-      <div id="market-grid" class="grid"></div>
+      <h2>🛒 Рынок (Standoff 2)</h2>
+      <div id="market-list" class="market-list"></div>
+    </section>
+
+    <!-- ПОПОЛНЕНИЕ -->
+    <section id="tab-topup" class="tab">
+      <h2>💳 Пополнение звёзд</h2>
+      <p style="font-size: 12px; color: gray; margin-bottom: 10px;">100 игровых ⭐ = 50 реальных ⭐</p>
+      <div id="topup-grid" class="grid-3"></div>
     </section>
   </main>
 </div>
@@ -96,15 +97,15 @@
     <div id="nft-preview-rarity" class="rarity-tag">Обычный</div>
     <div class="nft-info">
       <div>Номер: <b id="nft-preview-number">#1</b></div>
-      <div>Примерная цена: <b id="nft-preview-price">100</b> ⭐</div>
+      <div>Цена: <b id="nft-preview-price">100</b> ⭐</div>
     </div>
     
     <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button class="btn primary" style="flex:1;" onclick="upgradeNft()">✨ Улучшить</button>
         <button class="btn" style="flex:1; background: #e74c3c;" onclick="sellNft()">💰 Продать</button>
     </div>
-    
-    <button class="btn" style="margin-top: 15px; background: #333;" onclick="closeModal('modal-nft')">Закрыть</button>
+    <button class="btn" style="margin-top: 8px; background: #27ae60;" onclick="pinNft()">📌 Закрепить</button>
+    <button class="btn" style="margin-top: 8px; background: #333;" onclick="closeModal('modal-nft')">Закрыть</button>
   </div>
 </div>
 
