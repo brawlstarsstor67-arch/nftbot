@@ -26,8 +26,22 @@
           <div class="avatar" id="avatar">👤</div>
         </div>
         <h2 id="username">Твой Ник</h2>
-        <div id="phone-display" class="bio" onclick="editPhone()">📞 Добавить номер</div>
-        <div class="uz-display" id="uz-text">Мой юз</div>
+        
+        <!-- РАМКИ КАК В ТГ -->
+        <div class="tg-frames">
+            <div class="tg-frame" onclick="editPhone()">
+                <span class="tg-label">Телефон</span>
+                <span class="tg-value" id="phone-display">+7 999 000-00-00</span>
+            </div>
+            <div class="tg-frame" onclick="editUz()">
+                <span class="tg-label">Юз</span>
+                <span class="tg-value" id="uz-text">@my_username</span>
+            </div>
+            <div class="tg-frame" onclick="editBio()">
+                <span class="tg-label">О себе</span>
+                <span class="tg-value" id="bio">Описание профиля...</span>
+            </div>
+        </div>
       </div>
 
       <div class="card">
@@ -36,7 +50,7 @@
       </div>
 
       <div class="card">
-        <h3>🏆 Мои подарки (3 в ряд)</h3>
+        <h3>🏆 Мои подарки</h3>
         <div id="my-nfts" class="grid-3"></div>
       </div>
     </section>
@@ -87,6 +101,17 @@
   </main>
 </div>
 
+<!-- МОДАЛЬНОЕ ОКНО: ПРЕДПРОСМОТР КЕЙСА -->
+<div id="modal-case-preview" class="modal hidden">
+  <div class="modal-content">
+    <h2 id="preview-case-name">Кейс</h2>
+    <div id="preview-case-list" style="margin: 15px 0; text-align: left; font-size: 14px;"></div>
+    <div style="font-size: 12px; color: #f1c40f; margin-bottom: 15px;" id="preview-case-min-price">Мин. цена: 0⭐</div>
+    <button class="btn primary" onclick="confirmBuyCase()">Купить кейс</button>
+    <button class="btn" style="margin-top: 8px; background: #333;" onclick="closeModal('modal-case-preview')">Отмена</button>
+  </div>
+</div>
+
 <!-- МОДАЛЬНОЕ ОКНО NFT -->
 <div id="modal-nft" class="modal hidden">
   <div class="modal-content nft-modal">
@@ -105,7 +130,17 @@
         <button class="btn" style="flex:1; background: #e74c3c;" onclick="sellNft()">💰 Продать</button>
     </div>
     <button class="btn" style="margin-top: 8px; background: #27ae60;" onclick="pinNft()">📌 Закрепить</button>
+    <button class="btn admin-only" style="margin-top: 8px; background: #9b59b6; display:none;" onclick="openColorPicker()">🎨 Сменить фон (Админ)</button>
     <button class="btn" style="margin-top: 8px; background: #333;" onclick="closeModal('modal-nft')">Закрыть</button>
+  </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО: ВЫБОР ЦВЕТА (АДМИН) -->
+<div id="modal-color-picker" class="modal hidden">
+  <div class="modal-content">
+    <h2>Выберите фон</h2>
+    <div class="color-picker-grid" id="color-picker-grid"></div>
+    <button class="btn" style="margin-top: 15px; background: #333;" onclick="closeModal('modal-color-picker')">Отмена</button>
   </div>
 </div>
 
