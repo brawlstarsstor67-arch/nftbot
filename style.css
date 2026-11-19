@@ -121,3 +121,23 @@ nav {
 .nav-btn small { font-size: 10px; }
 
 .hidden { display: none; }
+header {
+  padding: 10px 4px; background: var(--bg2);
+  display: flex; justify-content: space-around; align-items: center;
+  position: sticky; top: 0; z-index: 10;
+  overflow-x: auto; white-space: nowrap;
+  border-bottom: 1px solid #2c3e50;
+}
+.nav-btn {
+  background: none; border: none; color: var(--hint);
+  font-size: 13px; font-weight: bold; padding: 8px 12px;
+  border-radius: 8px; cursor: pointer;
+}
+.nav-btn.active {
+  color: var(--text); background: rgba(255,255,255,0.1);
+}
+/* Красивые фоны для NFT */
+.bg-green { background: linear-gradient(135deg, #27ae60, #229954); }
+.bg-blue { background: linear-gradient(135deg, #2980b9, #21618c); }
+.bg-red { background: linear-gradient(135deg, #c0392b, #922b21); }
+.bg-black { background: linear-gradient(135deg, #000, #2c3e50); color: #f1c40f; }
