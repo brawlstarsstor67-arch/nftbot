@@ -1,21 +1,27 @@
 const tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
 
-let balance = 999999999; 
-let myNfts = [{ id: 1, emoji: '🧸', name: 'Мишка', rarity: 'Обычный', bg: 'bg-green', upgraded: false, pinned: true }];
+// 1. ЗАГРУЗКА ПРОГРЕССА (Чтобы не сбрасывалось)
+let balance = parseInt(localStorage.getItem('nft_balance')) || 999999999; 
+let myNfts = JSON.parse(localStorage.getItem('nft_inventory')) || [{ id: 1, emoji: '🧸', name: 'Мишка', rarity: 'Обычный', bg: 'bg-green', upgraded: false, pinned: true }];
 let currentNftId = null;
 let pinnedCount = 0;
-let currentSelectedCase = null;
 const isAdmin = true; 
 
-// Имитация базы данных лотов
+// Имитация рынка (в реальности подтягивается из БД)
 let marketLots = [
-    { id: 1, emoji: '🎩', name: 'Шляпа', price: 2000, seller: '@vazikonov', bg: 'bg-red', rarity: 'Редкий' },
-    { id: 2, emoji: '🎩', name: 'Шляпа', price: 2500, seller: '@user2', bg: 'bg-blue', rarity: 'Обычный' },
-    { id: 3, emoji: '👑', name: 'Корона', price: 8000, seller: '@user3', bg: 'bg-black', rarity: 'Легенда' }
+    { id: 10, emoji: '🎩', name: 'Шляпа', price: 2000, seller: '@vazikonov', seller_id: 8906194733, bg: 'bg-red', rarity: 'Редкий' },
+    { id: 11, emoji: '🎩', name: 'Шляпа', price: 2500, seller: '@user2', seller_id: 12345, bg: 'bg-blue', rarity: 'Обычный' },
+    { id: 12, emoji: '👑', name: 'Корона', price: 8000, seller: '@user3', seller_id: 67890, bg: 'bg-black', rarity: 'Легенда' }
 ];
 
 function send(data) { tg.sendData(JSON.stringify(data)); }
+
+// ФУНКЦИЯ СОХРАНЕНИЯ
+function saveProgress() {
+    localStorage.setItem('nft_balance', balance);
+    localStorage.setItem('nft_inventory', JSON.stringify(myNfts));
+}
 
 // НАВИГАЦИЯ
 document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -58,6 +64,7 @@ function renderProfile() {
         div.onclick = () => openNftModal(nft);
         grid.appendChild(div);
     });
+    saveProgress(); // Сохраняем при каждом обновлении
 }
 
 // --- МОДАЛЬНОЕ ОКНО NFT ---
@@ -79,7 +86,7 @@ function upgradeNft() {
     let nft = myNfts.find(n => n.id === currentNftId);
     if (!nft || nft.upgraded) { tg.showAlert('Этот NFT уже улучшен!'); return; }
     nft.upgraded = true; nft.bg = 'bg-black'; nft.rarity = 'Легенда';
-    document.getElementById('nft-preview-bg').className = `nft-preview-bg bg-black`;
+    document.getElementById('nft-preview-bg').className = `nft-bg-preview bg-black`;
     renderProfile(); send({ action: 'upgrade_nft', id: nft.id });
     tg.showAlert('✨ Улучшение успешно!');
 }
@@ -108,7 +115,7 @@ function openColorPicker() {
         div.onclick = () => {
             let nft = myNfts.find(n => n.id === currentNftId);
             nft.bg = c.class;
-            document.getElementById('nft-preview-bg').className = `nft-preview-bg ${nft.bg}`;
+            document.getElementById('nft-preview-bg').className = `nft-bg-preview ${nft.bg}`;
             renderProfile(); closeModal('modal-color-picker'); send({ action: 'admin_set_bg', id: nft.id, bg: c.class });
         };
         grid.appendChild(div);
@@ -127,11 +134,11 @@ function spinWheel() {
     setTimeout(() => { btn.innerText = "Крутить (100⭐)"; isSpinning = false; send({ action: 'spin_wheel' }); }, 4000);
 }
 
-// --- КЕЙСЫ ---
+// --- КЕЙСЫ (С СИНХРОНИЗАЦИЕЙ) ---
 const CASES_DATA = [
   { id: 'basic', name: 'Обычный', price: 100, theme: 'basic', items: '🧸 Мишка (50⭐), 💍 Кольцо (70⭐), 🎩 Шляпа (100⭐), ⭐ Звезда (150⭐), 👑 Корона (1000⭐)' },
-  { id: 'gta6', name: 'GTA 6', price: 500, theme: 'gta', items: '🔫 Пистолет (250⭐), 🚙 Тачка (400⭐), 💵 Деньги (800⭐), 🚁 Вертолёт (2000⭐), 🏰 Особняк (50000⭐)' },
-  { id: 'newyear', name: 'Новый год', price: 300, theme: 'ny', items: '🎄 Ёлка (150⭐), ⛄ Снеговик (200⭐), 🎁 Подарок (400⭐), ❄️ Снежинка (800⭐), 🎅 Дед Мороз (2000⭐)' },
+  { id: 'gta6', name: 'GTA 6', price: 500, theme: 'gta', items: '🔫 Пистолет (250⭐), 🚙 Тачка (400⭐), 🚁 Вертолёт (2000⭐), 🏰 Особняк (50000⭐)' },
+  { id: 'newyear', name: 'Новый год', price: 300, theme: 'ny', items: '🎄 Ёлка (150⭐), ⛄ Снеговик (200⭐), 🎁 Подарок (400⭐), 🎅 Дед Мороз (2000⭐)' },
 ];
 
 function renderCases() {
@@ -148,24 +155,30 @@ function confirmBuyCase() {
     closeModal('modal-case-preview');
     if (balance < currentSelectedCase.price) { tg.showAlert('❌ Недостаточно звезд!'); return; }
     balance -= currentSelectedCase.price; renderProfile();
+    
     document.getElementById('cases-grid').classList.add('hidden');
     document.getElementById('case-roll-container').classList.remove('hidden');
     const tape = document.getElementById('case-tape'); tape.innerHTML = ''; tape.style.transition = 'none'; tape.style.transform = 'translateX(0)';
     let emojis = currentSelectedCase.theme === 'basic' ? ['🧸', '💍', '🎩', '⭐', '👑'] : currentSelectedCase.theme === 'gta' ? ['🔫', '🚙', '💵', '🚁', '🏰'] : ['🎄', '⛄', '🎁', '❄️', '🎅'];
+    
     for (let i = 0; i < 30; i++) { const item = document.createElement('div'); item.className = 'tape-item'; item.innerText = emojis[Math.floor(Math.random() * emojis.length)]; tape.appendChild(item); }
+    
     setTimeout(() => { tape.style.transition = 'transform 10s ease-out'; tape.style.transform = 'translateX(-1200px)'; }, 100);
+    
+    // Ждем 10 секунд и показываем РЕАЛЬНЫЙ результат от бота
     setTimeout(() => {
         document.getElementById('case-roll-container').classList.add('hidden');
         document.getElementById('case-result').classList.remove('hidden');
-        const randEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-        document.getElementById('case-result').innerHTML = `Вы выбили: <span style="font-size: 40px;">${randEmoji}</span><br><small>Проверьте чат</small>`;
-        myNfts.push({ id: Date.now(), emoji: randEmoji, name: 'Новый', rarity: 'Обычный', bg: 'bg-green', upgraded: false, pinned: false });
-        renderProfile(); send({ action: 'open_case', case_id: currentSelectedCase.id });
+        document.getElementById('case-result').innerHTML = `Проверьте Telegram!<br><small>Бот пришлет предмет в чат.</small>`;
+        
+        // Отправляем запрос боту (он пришлет предмет)
+        send({ action: 'open_case', case_id: currentSelectedCase.id });
+        
         setTimeout(() => { document.getElementById('cases-grid').classList.remove('hidden'); document.getElementById('case-result').classList.add('hidden'); }, 3000);
     }, 10000);
 }
 
-// --- РЫНОК ---
+// --- РЫНОК (С ПОЛОСКАМИ И ПРЕДЛОЖЕНИЕМ ЦЕНЫ) ---
 function renderMarketPage() {
     document.getElementById('market-grid-view').classList.add('hidden');
     document.getElementById('market-ui').classList.remove('hidden');
@@ -204,11 +217,21 @@ function openMarketItem(id) {
                 </div>
             </div>
             <div class="market-row-price">${l.price} ⭐</div>
+            <button class="market-buy-btn" style="background: #f1c40f; color: #000;" onclick="event.stopPropagation(); makeOffer(${l.id}, ${l.seller_id})">ПРЕДЛОЖИТЬ</button>
             <button class="market-buy-btn" onclick="event.stopPropagation(); buyMarketItem(${l.id}, ${l.price})">КУПИТЬ</button>
         `;
         row.onclick = () => openMarketItem(l.id);
         list.appendChild(row);
     });
+}
+
+// ФУНКЦИЯ ПРЕДЛОЖЕНИЯ ЦЕНЫ
+function makeOffer(id, sellerId) {
+    const price = prompt("Введите вашу цену в ⭐:", "1000");
+    if (price && !isNaN(price)) {
+        send({ action: 'make_offer', id: id, seller_id: sellerId, price: parseInt(price) });
+        tg.showAlert('✅ Предложение отправлено продавцу!');
+    }
 }
 
 function buyMarketItem(id, price) {
@@ -220,23 +243,22 @@ function buyMarketItem(id, price) {
             renderProfile();
             tg.showAlert('✅ Успешно куплено!');
             if (marketLots.length > 0) openMarketItem(marketLots[0].id);
-            else renderMarketPage();
         } else {
             tg.showAlert('❌ Недостаточно средств!');
         }
     }
 }
 
-// --- ПОПОЛНЕНИЕ (С ЗАЯВКОЙ АДМИНУ) ---
+// --- ПОПОЛНЕНИЕ ---
 function renderTopup() {
     const grid = document.getElementById('topup-grid'); grid.innerHTML = '';
     for (let i = 100; i <= 10000000; i *= 10) { 
         const btn = document.createElement('div'); btn.className = 'card'; btn.style.textAlign = 'center'; btn.style.cursor = 'pointer';
         btn.innerHTML = `<b>${i} ⭐</b>`;
         btn.onclick = () => {
-            if (confirm(`Отправить заявку на пополнение на ${i} игровых ⭐?`)) {
+            if (confirm(`Отправить заявку на ${i}⭐?`)) {
                 send({ action: 'topup_request', amount: i });
-                tg.showAlert('⏳ Заявка отправлена админу. Ожидайте подтверждения.');
+                tg.showAlert('⏳ Ожидайте подтверждения админа.');
             }
         };
         grid.appendChild(btn); if (i > 1000) i += 900; 
