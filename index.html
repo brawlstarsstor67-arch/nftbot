@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NFT CASINO</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -64,16 +64,19 @@
 <div id="stars-picker" class="popup">
   <h3>⭐ Пополнить баланс</h3>
   <div class="packs">
-    <button class="btn-glass full" onclick="buyPackCmd(1000,100)">+1000 ⭐ за 100 Telegram Stars</button>
-    <button class="btn-glass full" onclick="buyPackCmd(5000,450)">+5000 ⭐ за 450 Telegram Stars</button>
-    <button class="btn-glass full" onclick="buyPackCmd(10000,800)">+10000 ⭐ за 800 Telegram Stars</button>
+    <button class="btn-glass full" onclick="buyPackOpen(1000)">+1000 ⭐ · 100 Telegram Stars</button>
+    <button class="btn-glass full" onclick="buyPackOpen(5000)">+5000 ⭐ · 450 Telegram Stars</button>
+    <button class="btn-glass full" onclick="buyPackOpen(10000)">+10000 ⭐ · 800 Telegram Stars</button>
   </div>
-  <div class="card" style="text-align:left;font-size:.85rem">Нажми на пакет — команда <code>/buy 1000</code> скопируется. Открой бота, отправь команду, оплати звёздами Telegram — бот пришлёт код. Введи его ниже.</div>
+  <div class="card" style="text-align:left;font-size:.85rem">
+    Нажми на пакет — откроется чат с ботом, счёт уже будет ждать. Оплати звёздами Telegram —
+    бот пришлёт код. Вернись сюда и введи код ниже.
+  </div>
   <input id="promo" placeholder="STARS-1000-XXXXX">
   <button class="btn-glass full" onclick="claimPromo()">Активировать код</button>
   <button class="btn-glass" onclick="toggleStarsPicker()">Закрыть</button>
 </div>
 
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
