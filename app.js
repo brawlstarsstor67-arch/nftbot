@@ -956,3 +956,78 @@ function claimPromo() {
   const code = document.getElementById("promo").value.trim().toUpperCase();
   const m = code.match(/^STARS-(\d+)-(\d+)$/);
   if (!m) return toast("
+// ---------- КОНЕЦ: claimPromo ----------
+  if (!m) return toast("Неверный формат. Пример: STARS-1000-XXXXX");
+  const amount = parseInt(m[1], 10);
+  if ([1000, 5000, 10000].indexOf(amount) < 0) return toast("Такого кода нет");
+  addStars(amount);
+  save(); updateBal();
+  document.getElementById("promo").value = "";
+  toggleStarsPicker();
+  toast("⭐ Зачислено +" + fmt(amount) + " звёзд!");
+}
+
+// ================= ТЕМЫ =================
+function setTheme(name) {
+  S.theme = name;
+  document.body.classList.remove("theme-xmas", "theme-halloween", "theme-chinese");
+  if (name !== "default") document.body.classList.add("theme-" + name);
+  save();
+}
+
+// ================= ПОПАПЫ (создаются, если их нет в index.html) =================
+function ensurePopup(id) {
+  let p = document.getElementById(id);
+  if (p) return p;
+  p = document.createElement("div");
+  p.className = "popup";
+  p.id = id;
+  document.body.appendChild(p);
+  return p;
+}
+
+(function initPopups() {
+  // Звёзды: пакеты + промокод
+  const sp = ensurePopup("stars-picker");
+  sp.innerHTML =
+    '<h3>⭐ Пополнение</h3>' +
+    '<div class="packs">' +
+      '<button class="btn-glass full" style="margin:0 auto 8px" onclick="buyPackCmd(1000)">1000 ⭐ — /buy 1000</button>' +
+      '<button class="btn-glass full" style="margin:0 auto 8px" onclick="buyPackCmd(5000)">5000 ⭐ — /buy 5000</button>' +
+      '<button class="btn-glass full" style="margin:0 auto 8px" onclick="buyPackCmd(10000)">10000 ⭐ — /buy 10000</button>' +
+    '</div>' +
+    '<div class="muted">Бот скопирует команду — отправь её боту и оплати. Код придёт в чат.</div>' +
+    '<input id="promo" placeholder="STARS-1000-XXXXX">' +
+    '<button class="ok-btn" onclick="claimPromo()">Активировать код</button>' +
+    '<button class="btn-glass full" style="margin:0 auto" onclick="toggleStarsPicker()">Закрыть</button>';
+
+  // Цвет (настройки в профиле)
+  const cp = ensurePopup("color-picker");
+  let colors = "";
+  ["#ffd700", "#ff4d6d", "#5ac8fa", "#7dff8a", "#c56bff", "#ff9d00", "#00e5ff", "#ff2bd6", "#ffffff"].forEach(function(c) {
+    colors += '<button class="color-btn" style="background:' + c + '" onclick="pickColor(\'' + c + '\')"></button>';
+  });
+  cp.innerHTML =
+    '<h3>🎨 Цвет профиля</h3>' +
+    '<div class="color-grid">' + colors + '</div>' +
+    '<button class="btn-glass full" style="margin:0 auto" onclick="toggleColorPicker()">Закрыть</button>';
+})();
+
+function toggleColorPicker() { ensurePopup("color-picker").classList.toggle("show"); }
+
+function pickColor(c) {
+  S.color = c;
+  save();
+  toast("🎨 Цвет сохранён!");
+  toggleColorPicker();
+  renderView();
+}
+
+// ================= СТАРТ =================
+(function init() {
+  // Применяем сохранённую тему
+  const th = S.theme || "default";
+  if (th !== "default") document.body.classList.add("theme-" + th);
+  updateBal();
+  go("roulette");
+})();
