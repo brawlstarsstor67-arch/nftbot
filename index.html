@@ -1,480 +1,79 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NFT CASINO</title>
-<style>
-  * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; -webkit-tap-highlight-color:transparent; }
-  body { background:linear-gradient(160deg,#0f0f24,#1e1e3f); color:#fff; min-height:100vh; padding:14px; padding-bottom:90px; }
-  h1 { text-align:center; font-size:22px; color:#ffd700; margin-bottom:2px; }
-  .sub { text-align:center; font-size:11px; color:#8888aa; margin-bottom:10px; }
-  .bal { text-align:center; font-size:19px; margin-bottom:14px; cursor:pointer; }
-  .tabs { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; margin-bottom:14px; }
-  .tab { padding:9px 13px; background:#2a2a4a; border:none; border-radius:12px; color:#fff; font-size:13px; cursor:pointer; }
-  .tab.on { background:#ffd700; color:#141428; font-weight:bold; }
-  .panel { background:#22224a; border-radius:16px; padding:16px; display:none; }
-  .panel.on { display:block; }
-  button.act { display:block; width:100%; margin:8px 0; padding:13px; font-size:15px; background:#7b2ff7; color:#fff; border:none; border-radius:12px; cursor:pointer; }
-  button.act:active { opacity:.65; }
-  button.gold { background:#c9a100; color:#141428; font-weight:bold; }
-  .res { margin-top:10px; text-align:center; font-size:17px; min-height:26px; white-space:pre-line; }
-  .small { font-size:12px; color:#9a9ab0; }
-  .betrow { display:flex; gap:8px; justify-content:center; margin-bottom:6px; }
-  .bet { padding:8px 16px; background:#2a2a4a; border:2px solid transparent; border-radius:10px; color:#fff; cursor:pointer; font-size:14px; }
-  .bet.on { border-color:#ffd700; color:#ffd700; }
-  .nftcard { background:#2f2f5a; border-radius:12px; padding:10px; margin:8px 0; display:flex; align-items:center; gap:10px; }
-  .nftcard .em { font-size:26px; }
-  .nftcard .info { flex:1; }
-  .nftcard .btns { display:flex; flex-direction:column; gap:4px; }
-  .nftcard .btns button { padding:5px 10px; font-size:11px; border:none; border-radius:8px; cursor:pointer; background:#4a4a7a; color:#fff; }
-  .legend { color:#ff4d4d; font-weight:bold; } .mythic { color:#ff9dfb; font-weight:bold; }
-  .epic { color:#a569ff; font-weight:bold; } .rare { color:#4da6ff; } .common { color:#9a9ab0; }
-  #bar { height:14px; background:#111; border-radius:7px; overflow:hidden; margin:10px 0; }
-  #fill { height:100%; width:0%; background:linear-gradient(90deg,#ffd700,#ff8c00); transition:width .4s; }
-  .row { display:flex; gap:8px; margin:8px 0; }
-  .row input { flex:1; padding:11px; border:none; border-radius:10px; background:#14142e; color:#fff; font-size:14px; }
-  .friend { display:flex; justify-content:space-between; align-items:center; background:#2f2f5a; border-radius:10px; padding:10px; margin:6px 0; }
-  .friend button { padding:6px 12px; font-size:12px; border:none; border-radius:8px; cursor:pointer; }
-  .del { background:#aa3333; color:#fff; }
-  .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:50; align-items:center; justify-content:center; padding:20px; }
-  .modal.on { display:flex; }
-  .mbox { background:#22224a; border-radius:16px; padding:18px; width:100%; max-width:360px; max-height:80vh; overflow-y:auto; }
-  .mbox h3 { margin-bottom:10px; }
-  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#ffd700; color:#141428; padding:10px 20px; border-radius:20px; font-size:13px; font-weight:bold; display:none; z-index:99; }
-  .slot { font-size:34px; letter-spacing:8px; text-align:center; margin:14px 0; min-height:44px; }
-  .caseflash { font-size:30px; text-align:center; margin:12px 0; min-height:40px; }
-  .pinned { color:#ffd700; font-size:11px; }
-  .tierbig { font-size:24px; text-align:center; color:#ffd700; margin-bottom:6px; }
-  .mrkprice { font-weight:bold; color:#ffd700; }
-</style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
-<h1>🎰 NFT CASINO</h1>
-<div class="sub">играй • коллекционируй • торгуй</div>
-<div class="bal" id="bal" onclick="showCode()">Баланс: 1000 ⭐</div>
+<header class="graffiti-header">NFT CASINO</header>
 
-<div class="tabs">
-  <button class="tab on" data-p="p1">🎰 Рулетка</button>
-  <button class="tab" data-p="p2">🎁 Кейсы</button>
-  <button class="tab" data-p="p3">🏪 Рынок</button>
-  <button class="tab" data-p="p4">💎 Инвентарь</button>
-  <button class="tab" data-p="p5">⬆️ Апгрейдер</button>
-  <button class="tab" data-p="p6">👥 Друзья</button>
-  <button class="tab" data-p="p7">👤 Профиль</button>
-</div>
-
-<!-- РУЛЕТКА -->
-<div class="panel on" id="p1">
-  <p class="small">Выбери ставку и крути. Три одинаковых — x8, два — x2.5</p>
-  <div class="betrow">
-    <button class="bet on" onclick="setBet(100,this)">100 ⭐</button>
-    <button class="bet" onclick="setBet(250,this)">250 ⭐</button>
-    <button class="bet" onclick="setBet(500,this)">500 ⭐</button>
-    <button class="bet" onclick="setBet(1000,this)">1000 ⭐</button>
+<div class="top-bar">
+  <div class="balance-box" onclick="toggleStarsPicker()">
+    <span class="star">⭐</span>
+    <span id="bal">0</span>
+    <span class="plus">＋</span>
   </div>
-  <div class="slot" id="slot">🎲 🎲 🎲</div>
-  <button class="act gold" onclick="spin()">Крутить 🎡</button>
-  <div class="res" id="r1"></div>
-</div>
-
-<!-- КЕЙСЫ -->
-<div class="panel" id="p2">
-  <p class="small">Чем дороже кейс — тем выше шанс на редкость</p>
-  <button class="act" onclick="openCase('Обычный',100)">📦 Обычный кейс — 100 ⭐</button>
-  <button class="act" onclick="openCase('Редкий',300)">🎁 Редкий кейс — 300 ⭐</button>
-  <button class="act gold" onclick="openCase('Легендарный',800)">🏆 Легендарный кейс — 800 ⭐</button>
-  <div class="caseflash" id="flash"></div>
-  <div class="res" id="r2"></div>
-</div>
-
-<!-- РЫНОК -->
-<div class="panel" id="p3">
-  <p class="small">Продавай свои NFT другим игрокам или покупай чужие. Цена зависит от редкости</p>
-  <h3 style="margin:10px 0 6px; color:#ffd700">Мои лоты на продаже</h3>
-  <div id="myLots"></div>
-  <h3 style="margin:14px 0 6px; color:#ffd700">Чужие лоты</h3>
-  <div id="marketLots"></div>
-</div>
-
-<!-- ИНВЕНТАРЬ -->
-<div class="panel" id="p4">
-  <div id="inv"></div>
-</div>
-
-<!-- АПГРЕЙДЕР -->
-<div class="panel" id="p5">
-  <div class="tierbig">Уровень <span id="tierN">1</span></div>
-  <p>Прогресс: <span id="upgPct">37</span>%</p>
-  <div id="bar"><div id="fill"></div></div>
-  <p class="small">Шанс успеха 65%. Провал — минус 15% прогресса. Каждый уровень удваивает цену</p>
-  <button class="act" onclick="upgrade()">Апгрейд за <span id="upgCost">1200</span> ⭐</button>
-  <div class="res" id="r5"></div>
-</div>
-
-<!-- ДРУЗЬЯ -->
-<div class="panel" id="p6">
-  <p class="small">Добавляй друзей по ID (команда /id у бота показывает твой ID)</p>
-  <div class="row">
-    <input id="fid" inputmode="numeric" placeholder="ID друга">
-    <button class="act" style="width:auto;margin:0;padding:11px 16px" onclick="addFriend()">Добавить</button>
-  </div>
-  <div id="friends"></div>
-</div>
-
-<!-- ПРОФИЛЬ -->
-<div class="panel" id="p7">
-  <p>NFT в коллекции: <b id="cnt">0</b></p>
-  <p>Уровень: <b id="tierN2">1</b></p>
-  <p>Заработано на рынке: <b id="earned">0</b> ⭐</p>
-  <p class="small" style="margin-top:8px">Твой ID для друзей:</p>
-  <button class="act" onclick="copyId()">📋 Скопировать мой ID</button>
-  <button class="act" onclick="showCode()">💳 Пополнить баланс кодом</button>
-  <p class="small">Код выдаёт бот после оплаты: /buy 1000 → оплати → получи код → введи его здесь</p>
-</div>
-
-<!-- МОДАЛКА КОДА -->
-<div class="modal" id="mcode">
-  <div class="mbox">
-    <h3>💳 Пополнение кодом</h3>
-    <p class="small">1. У бота: /buy 1000 (или 5000 / 10000)<br>2. Оплати в Telegram Stars<br>3. Введи код здесь</p>
-    <div class="row">
-      <input id="codeIn" placeholder="STARS-1000-XXXXX">
-      <button class="act" style="width:auto;margin:0;padding:11px 16px" onclick="closeCode()">Закрыть</button>
-    </div>
-    <div class="res" id="rCode"></div>
+  <div class="theme-controls">
+    <button class="btn-glass mini" onclick="toggleColorPicker()">🎨</button>
+    <button class="btn-glass mini" onclick="toggleThemePicker()">🎇</button>
   </div>
 </div>
 
-<!-- МОДАЛКА ВЫСТАВЛЕНИЯ ЛОТА -->
-<div class="modal" id="msell">
-  <div class="mbox">
-    <h3>🏪 Выставить на рынок</h3>
-    <p class="small">NFT: <b id="sellName"></b></p>
-    <p class="small">Рекомендуемая цена: <span class="mrkprice" id="sellHint"></span></p>
-    <div class="row">
-      <input id="sellPrice" inputmode="numeric" placeholder="Цена в ⭐">
-      <button class="act" style="width:auto;margin:0;padding:11px 16px" onclick="doSell()">Выставить</button>
-    </div>
-    <button class="act" onclick="closeSell()">Отмена</button>
+<nav class="glass-nav">
+  <button class="glass-btn" data-tab="roulette" onclick="go('roulette')">🎰 Рулетка</button>
+  <button class="glass-btn" data-tab="cases"    onclick="go('cases')">🎁 Кейсы</button>
+  <button class="glass-btn" data-tab="market"   onclick="go('market')">🛒 Маркет</button>
+  <button class="glass-btn" data-tab="inv"      onclick="go('inv')">💎 NFT</button>
+  <button class="glass-btn" data-tab="upg"      onclick="go('upg')">⬆️ Апгрейдер</button>
+  <button class="glass-btn" data-tab="prof"     onclick="go('prof')">👤 Профиль</button>
+</nav>
+
+<main id="view"></main>
+
+<div id="color-picker" class="popup">
+  <h3>🎨 Цвет оформления</h3>
+  <div class="color-grid">
+    <button class="color-btn" style="background:#ffd700" onclick="setColor('#ffd700')"></button>
+    <button class="color-btn" style="background:#ff3b30" onclick="setColor('#ff3b30')"></button>
+    <button class="color-btn" style="background:#5ac8fa" onclick="setColor('#5ac8fa')"></button>
+    <button class="color-btn" style="background:#8e8e93" onclick="setColor('#8e8e93')"></button>
+    <button class="color-btn" style="background:#1c1c1e" onclick="setColor('#ffffff')"></button>
+    <button class="color-btn" style="background:#d4af37" onclick="setColor('#d4af37')"></button>
+    <button class="color-btn" style="background:#8b5a2b" onclick="setColor('#8b5a2b')"></button>
+    <button class="color-btn" style="background:#34c759" onclick="setColor('#34c759')"></button>
+    <button class="color-btn" style="background:#af52de" onclick="setColor('#af52de')"></button>
   </div>
+  <button class="btn-glass" onclick="toggleColorPicker()">Закрыть</button>
 </div>
 
-<!-- МОДАЛКА ПЕРЕДАЧИ -->
-<div class="modal" id="mgift">
-  <div class="mbox">
-    <h3>🎁 Кому передаём?</h3>
-    <div id="giftList"></div>
-    <button class="act" onclick="closeGift()">Отмена</button>
+<div id="theme-picker" class="popup">
+  <h3>🎇 Быстрая тема</h3>
+  <div class="theme-list">
+    <button class="theme-btn" onclick="setTheme('default')">🌑 Обычная</button>
+    <button class="theme-btn" onclick="setTheme('xmas')">🎄 Новый год</button>
+    <button class="theme-btn" onclick="setTheme('halloween')">🎃 Хеллоуин</button>
+    <button class="theme-btn" onclick="setTheme('chinese')">🏮 Китайский НГ</button>
   </div>
+  <button class="btn-glass" onclick="toggleThemePicker()">Закрыть</button>
 </div>
 
-<div class="toast" id="toast"></div>
+<div id="stars-picker" class="popup">
+  <h3>⭐ Пополнить баланс</h3>
+  <div class="packs">
+    <button class="btn-glass full" onclick="buyPackCmd(1000,100)">+1000 ⭐ за 100 Telegram Stars</button>
+    <button class="btn-glass full" onclick="buyPackCmd(5000,450)">+5000 ⭐ за 450 Telegram Stars</button>
+    <button class="btn-glass full" onclick="buyPackCmd(10000,800)">+10000 ⭐ за 800 Telegram Stars</button>
+  </div>
+  <div class="card" style="text-align:left;font-size:.85rem">Нажми на пакет — команда <code>/buy 1000</code> скопируется. Открой бота, отправь команду, оплати звёздами Telegram — бот пришлёт код. Введи его ниже.</div>
+  <input id="promo" placeholder="STARS-1000-XXXXX">
+  <button class="btn-glass full" onclick="claimPromo()">Активировать код</button>
+  <button class="btn-glass" onclick="toggleStarsPicker()">Закрыть</button>
+</div>
 
-<script>
-// ===== Telegram WebApp =====
-const tg = window.Telegram ? window.Telegram.WebApp : null;
-if (tg) { tg.expand(); try { tg.setHeaderColor('#1e1e3f'); } catch(e){} }
-const MY_ID = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? String(tg.initDataUnsafe.user.id) : null;
-const MY_NAME = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? (tg.initDataUnsafe.user.first_name || 'Игрок') : 'Игрок';
-
-// ===== ДАННЫЕ =====
-function load(key, def){
-  try { const v = localStorage.getItem('nftcasino_' + key); return v === null ? def : JSON.parse(v); }
-  catch(e){ return def; }
-}
-function persist(key, val){ try { localStorage.setItem('nftcasino_' + key, JSON.stringify(val)); } catch(e){} }
-
-let S = {
-  bal:     load('bal', 1000),
-  prog:    load('prog', 37),
-  tier:    load('tier', 1),
-  nfts:    load('nfts', []),
-  friends: load('friends', []),
-  market:  load('market', []),   // мои лоты: {n,e,r,c,price}
-  shop:    load('shop', []),     // чужие лоты, доступные для покупки
-  earned:  load('earned', 0),
-};
-let cost = Math.pow(2, S.tier) * 600;
-let bet = 100;
-
-// Цены редкостей (базовая стоимость для рынка)
-const RAR = [
-  { n:'Обычный',     c:'common', w:60, boost:0, val:150 },
-  { n:'Редкий',      c:'rare',   w:25, boost:0, val:500 },
-  { n:'Эпический',   c:'epic',   w:10, boost:1, val:1500 },
-  { n:'Легендарный', c:'legend', w:4,  boost:2, val:5000 },
-  { n:'Мифический',  c:'mythic', w:1,  boost:3, val:15000 },
-];
-const NAMES = [
-  { n:'Анонимный Дракон',   e:'🐉' },
-  { n:'Кибер-Череп',        e:'💀' },
-  { n:'Золотой Боксёр',     e:'🥊' },
-  { n:'Неоновый Волк',      e:'🐺' },
-  { n:'Призрачный Самурай', e:'🥷' },
-  { n:'Токсичный Слизень',  e:'🦠' },
-  { n:'Космический Кит',    e:'🐳' },
-  { n:'Пламенный Феникс',   e:'🔥' },
-];
-const ICONS = ['🎲','💎','🔥','⚡','⭐','🎱','🃏','🍀'];
-
-// ===== РЕНДЕР =====
-function render(){
-  document.getElementById('bal').textContent = 'Баланс: ' + S.bal + ' ⭐';
-  document.getElementById('cnt').textContent = S.nfts.length;
-  document.getElementById('tierN').textContent = S.tier;
-  document.getElementById('tierN2').textContent = S.tier;
-  document.getElementById('upgPct').textContent = S.prog;
-  document.getElementById('fill').style.width = S.prog + '%';
-  document.getElementById('upgCost').textContent = cost;
-  document.getElementById('earned').textContent = S.earned;
-
-  // инвентарь
-  const inv = document.getElementById('inv');
-  inv.innerHTML = S.nfts.length ? '' : '<p class="small">Пусто. Открывай кейсы!</p>';
-  S.nfts.forEach((f, i) => {
-    const d = document.createElement('div');
-    d.className = 'nftcard';
-    d.innerHTML =
-      '<div class="em">' + f.e + '</div>' +
-      '<div class="info"><b>' + f.n + '</b><br><span class="' + f.c + '">' + f.r + '</span>' +
-      (f.pin ? '<br><span class="pinned">📌 закреплён</span>' : '') + '</div>' +
-      '<div class="btns">' +
-      '<button onclick="sellStart(' + i + ')">🏪 Продать</button>' +
-      '<button onclick="pinNft(' + i + ')">' + (f.pin ? 'Открепить' : '📌 Закрепить') + '</button>' +
-      '<button onclick="giftStart(' + i + ')">🎁 Передать</button></div>';
-    inv.appendChild(d);
-  });
-
-  // мои лоты на рынке
-  const ml = document.getElementById('myLots');
-  ml.innerHTML = S.market.length ? '' : '<p class="small">Ничего не выставлено</p>';
-  S.market.forEach((lot, i) => {
-    const d = document.createElement('div');
-    d.className = 'nftcard';
-    d.innerHTML = '<div class="em">' + lot.e + '</div>' +
-      '<div class="info"><b>' + lot.n + '</b><br><span class="' + lot.c + '">' + lot.r + '</span><br>' +
-      '<span class="mrkprice">' + lot.price + ' ⭐</span></div>' +
-      '<div class="btns"><button class="del" onclick="cancelLot(' + i + ')">Снять с продажи</button></div>';
-    ml.appendChild(d);
-  });
-
-  // чужие лоты
-  const sl = document.getElementById('marketLots');
-  sl.innerHTML = S.shop.length ? '' : '<p class="small">Лотов пока нет. Заглядывай позже!</p>';
-  S.shop.forEach((lot, i) => {
-    const d = document.createElement('div');
-    d.className = 'nftcard';
-    const seller = lot.seller ? '👤 ' + lot.seller : '👤 Игрок';
-    d.innerHTML = '<div class="em">' + lot.e + '</div>' +
-      '<div class="info"><b>' + lot.n + '</b><br><span class="' + lot.c + '">' + lot.r + '</span><br>' +
-      '<span class="small">' + seller + '</span><br><span class="mrkprice">' + lot.price + ' ⭐</span></div>' +
-      '<div class="btns"><button onclick="buyLot(' + i + ')">Купить</button></div>';
-    sl.appendChild(d);
-  });
-
-  // друзья
-  const fr = document.getElementById('friends');
-  fr.innerHTML = S.friends.length ? '' : '<p class="small">Пока никого нет</p>';
-  S.friends.forEach((f, i) => {
-    const d = document.createElement('div');
-    d.className = 'friend';
-    d.innerHTML = '<span>👤 ' + f.name + ' <span class="small">(' + f.id + ')</span></span>' +
-      '<button class="del" onclick="delFriend(' + i + ')">✕</button>';
-    fr.appendChild(d);
-  });
-  persistAll();
-}
-function persistAll(){
-  persist('bal', S.bal); persist('prog', S.prog); persist('tier', S.tier);
-  persist('nfts', S.nfts); persist('friends', S.friends);
-  persist('market', S.market); persist('shop', S.shop); persist('earned', S.earned);
-}
-function msg(id, text){ document.getElementById(id).textContent = text; }
-function toast(t){
-  const el = document.getElementById('toast');
-  el.textContent = t; el.style.display = 'block';
-  setTimeout(()=>{ el.style.display = 'none'; }, 1800);
-}
-
-// ===== ВКЛАДКИ =====
-document.querySelectorAll('.tab').forEach(t => {
-  t.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
-    t.classList.add('on');
-    document.getElementById(t.dataset.p).classList.add('on');
-  });
-});
-
-// ===== РУЛЕТКА =====
-function setBet(v, el){
-  bet = v;
-  document.querySelectorAll('.bet').forEach(b => b.classList.remove('on'));
-  el.classList.add('on');
-}
-let spinning = false;
-function spin(){
-  if (spinning) return;
-  if (S.bal < bet) return msg('r1', '❌ Не хватает звёзд');
-  spinning = true;
-  S.bal -= bet;
-  render();
-  msg('r1', '');
-  const slot = document.getElementById('slot');
-  let ticks = 0;
-  const iv = setInterval(() => {
-    slot.textContent = [0,1,2].map(() => ICONS[Math.floor(Math.random()*ICONS.length)]).join(' ');
-    ticks++;
-    if (ticks >= 14) {
-      clearInterval(iv);
-      const res = [0,0,0].map(() => ICONS[Math.floor(Math.random()*ICONS.length)]);
-      slot.textContent = res.join(' ');
-      let win = 0;
-      if (res[0] === res[1] && res[1] === res[2]) win = bet * 8;
-      else if (res[0] === res[1] || res[1] === res[2] || res[0] === res[2]) win = Math.round(bet * 2.5);
-      if (win) { S.bal += win; msg('r1', '🎉 +' + win + ' ⭐!'); }
-      else msg('r1', '😢 мимо');
-      spinning = false;
-      render();
-    }
-  }, 90);
-}
-
-// ===== КЕЙСЫ =====
-function rollRar(kind){
-  const boost = { 'Обычный':0, 'Редкий':2, 'Легендарный':5 }[kind] || 0;
-  const table = RAR.map(r => ({ ...r, w: r.w + (r.boost ? r.boost * boost : 0) }));
-  const total = table.reduce((s, r) => s + r.w, 0);
-  let x = Math.random() * total;
-  for (const r of table) { if ((x -= r.w) <= 0) return r; }
-  return RAR[0];
-}
-let casing = false;
-function openCase(kind, price){
-  if (casing) return;
-  if (S.bal < price) return msg('r2', '❌ Не хватает звёзд');
-  casing = true;
-  S.bal -= price;
-  render();
-  msg('r2', '');
-  const fl = document.getElementById('flash');
-  let ticks = 0;
-  const iv = setInterval(() => {
-    const nm = NAMES[Math.floor(Math.random()*NAMES.length)];
-    fl.textContent = nm.e + ' ' + nm.n;
-    ticks++;
-    if (ticks >= 12) {
-      clearInterval(iv);
-      const rr = rollRar(kind);
-      const nm = NAMES[Math.floor(Math.random()*NAMES.length)];
-      S.nfts.push({ n: nm.n, e: nm.e, r: rr.n, c: rr.c, pin: false });
-      fl.textContent = nm.e + ' ' + nm.n;
-      msg('r2', '🎉 Выпал ' + rr.n + ' — ' + nm.n + '!');
-      casing = false;
-      render();
-    }
-  }, 80);
-}
-
-// ===== РЫНОК =====
-let sellIdx = -1;
-function sellStart(i){
-  sellIdx = i;
-  const f = S.nfts[i];
-  const rarObj = RAR.find(r => r.n === f.r) || RAR[0];
-  document.getElementById('sellName').textContent = f.e + ' ' + f.n + ' (' + f.r + ')';
-  document.getElementById('sellHint').textContent = rarObj.val + ' ⭐';
-  document.getElementById('sellPrice').value = rarObj.val;
-  document.getElementById('msell').classList.add('on');
-}
-function doSell(){
-  const p = parseInt(document.getElementById('sellPrice').value, 10);
-  if (!p || p <= 0) return toast('Укажи цену');
-  const f = S.nfts[sellIdx];
-  S.nfts.splice(sellIdx, 1);
-  S.market.push({ n: f.n, e: f.e, r: f.r, c: f.c, price: p });
-  closeSell(); render();
-  toast('🏪 Лот выставлен');
-}
-function cancelLot(i){
-  const lot = S.market[i];
-  S.market.splice(i, 1);
-  S.nfts.push({ n: lot.n, e: lot.e, r: lot.r, c: lot.c, pin: false });
-  render();
-  toast('Лот снят, NFT вернулся в инвентарь');
-}
-function buyLot(i){
-  const lot = S.shop[i];
-  if (S.bal < lot.price) return toast('❌ Не хватает звёзд');
-  S.bal -= lot.price;
-  S.shop.splice(i, 1);
-  S.nfts.push({ n: lot.n, e: lot.e, r: lot.r, c: lot.c, pin: false });
-  render();
-  toast('🎉 Куплено: ' + lot.e + ' ' + lot.n);
-}
-
-// ===== ИНВЕНТАРЬ: ЗАКРЕПИТЬ =====
-function pinNft(i){
-  S.nfts[i].pin = !S.nfts[i].pin;
-  if (S.nfts[i].pin) {
-    const t = S.nfts[i].e + ' ' + S.nfts[i].n + ' — ' + S.nfts[i].r;
-    try { navigator.clipboard.writeText(t); } catch(e){}
-    toast('📌 Скопировано! Вставь в статус Telegram');
-  }
-  render();
-}
-
-// ===== ПЕРЕДАЧА NFT =====
-let giftIdx = -1;
-function giftStart(i){
-  if (!S.friends.length) return toast('Сначала добавь друга во вкладке «Друзья»');
-  giftIdx = i;
-  const gl = document.getElementById('giftList');
-  gl.innerHTML = '';
-  S.friends.forEach((f, k) => {
-    const d = document.createElement('div');
-    d.className = 'friend';
-    d.innerHTML = '<span>👤 ' + f.name + '</span>';
-    const b = document.createElement('button');
-    b.textContent = 'Передать';
-    b.style.background = '#7b2ff7'; b.style.color = '#fff';
-    b.onclick = () => doGift(k);
-    d.appendChild(b);
-    gl.appendChild(d);
-  });
-  document.getElementById('mgift').classList.add('on');
-}
-function doGift(k){
-  const f = S.nfts[giftIdx];
-  S.nfts.splice(giftIdx, 1);
-  // Переданный NFT попадает на рынок как лот «от тебя» — друг сможет его купить
-  S.shop.push({ n: f.n, e: f.e, r: f.r, c: f.c, price: (RAR.find(r=>r.n===f.r)||RAR[0]).val, seller: MY_NAME + ' (дарит ' + S.friends[k].name + ')' });
-  closeGift(); render();
-  toast('🎁 NFT передан: ' + S.friends[k].name);
-}
-function closeGift(){ document.getElementById('mgift').classList.remove('on'); }
-
-// ===== ДРУЗЬЯ =====
-function addFriend(){
-  const v = document.getElementById('fid').value.trim();
-  if (!/^\d+$/.test(v)) return toast('ID — только цифры');
-  if (S.friends.some(f => f.id === v)) return toast('Уже в списке');
-  S.friends.push({ id: v, name: 'Игрок ' + v.slice(-4) });
-  document.getElementById('fid').value = '';
-  render();
-  toast('👥 Друг добавлен');
-}
-function delFriend(i){ S.friends.splice(i, 1); render(); }
-
-// ===== АПГРЕЙДЕР =====
-let uping = false;
-function upgrade(){
-  if (uping) return;
-  if (S.bal < cost) return msg('r5', '❌ Не хватает звёзд');
-  uping = true;
-  S.bal -= cost;
-  render();
-  if (Math.random() < 0.65) {
-    S.
+<script src="app.js?v=4"></script>
+</body>
+</html>
