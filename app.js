@@ -1031,3 +1031,73 @@ function pickColor(c) {
   updateBal();
   go("roulette");
 })();
+// ================= ФИКС КНОПОК =================
+function toggleThemePicker() {
+  const el = document.getElementById("theme-picker");
+  if (el) el.classList.toggle("show");
+}
+
+function setColor(c) { pickColor(c); }
+
+function pickColor(c) {
+  S.color = c;
+  save();
+  toast("🎨 Цвет сохранён!");
+  toggleColorPicker();
+  renderView();
+}
+
+// ================= ТЕМЫ =================
+function setTheme(name) {
+  S.theme = name;
+  document.body.classList.remove("theme-xmas", "theme-halloween", "theme-chinese");
+  if (name !== "default") document.body.classList.add("theme-" + name);
+  save();
+}
+
+// ================= ПОПАПЫ (заполняем, только если пустые) =================
+function ensurePopup(id) {
+  let p = document.getElementById(id);
+  if (p) return p;
+  p = document.createElement("div");
+  p.className = "popup";
+  p.id = id;
+  document.body.appendChild(p);
+  return p;
+}
+
+(function initPopups() {
+  const sp = document.getElementById("stars-picker");
+  if (sp && !sp.innerHTML.trim()) {
+    sp.innerHTML =
+      '<h3>⭐ Пополнение</h3>' +
+      '<div class="packs">' +
+        '<button class="btn-glass full" style="margin:0 auto 8px" onclick="buyPackCmd(1000)">1000 ⭐ — /buy 1000</button>' +
+        '<button class="btn-glass full" style="margin:0 auto 8px" onclick="buyPackCmd(5000)">5000 ⭐ — /buy 5000</button>' +
+        '<button class="btn-glass full" style="margin:0 auto 8px" onclick="buyPackCmd(10000)">10000 ⭐ — /buy 10000</button>' +
+      '</div>' +
+      '<input id="promo" placeholder="STARS-1000-XXXXX">' +
+      '<button class="ok-btn" onclick="claimPromo()">Активировать код</button>' +
+      '<button class="btn-glass full" style="margin:0 auto" onclick="toggleStarsPicker()">Закрыть</button>';
+  }
+
+  const cp = document.getElementById("color-picker");
+  if (cp && !cp.innerHTML.trim()) {
+    let colors = "";
+    ["#ffd700", "#ff4d6d", "#5ac8fa", "#7dff8a", "#c56bff", "#ff9d00", "#00e5ff", "#ff2bd6", "#ffffff"].forEach(function(c) {
+      colors += '<button class="color-btn" style="background:' + c + '" onclick="setColor(\'' + c + '\')"></button>';
+    });
+    cp.innerHTML =
+      '<h3>🎨 Цвет оформления</h3>' +
+      '<div class="color-grid">' + colors + '</div>' +
+      '<button class="btn-glass full" style="margin:0 auto" onclick="toggleColorPicker()">Закрыть</button>';
+  }
+})();
+
+// ================= СТАРТ =================
+(function init() {
+  const th = S.theme || "default";
+  if (th !== "default") document.body.classList.add("theme-" + th);
+  updateBal();
+  go("roulette");
+})();
