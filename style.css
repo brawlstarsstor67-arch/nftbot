@@ -107,7 +107,7 @@ input {
 }
 input::placeholder { color: rgba(255,255,255,.4); }
 
-/* ===== АНИМАЦИИ NFT (кружатся как в ТГ) ===== */
+/* ===== АНИМАЦИИ NFT ===== */
 @keyframes spinY { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
 .spin3d { display: inline-block; animation: spinY 5s linear infinite; transform-style: preserve-3d; }
 @keyframes floatUp { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
@@ -125,7 +125,6 @@ input::placeholder { color: rgba(255,255,255,.4); }
   border: 1px solid #4a4a4a;
 }
 
-/* ===== ФОНЫ РЕДКОСТИ ===== */
 .bg-Обычный      { background: linear-gradient(160deg,#3a4150,#1c212b); }
 .bg-Редкий       { background: linear-gradient(160deg,#1d3a6b,#12203f); }
 .bg-Эпический    { background: linear-gradient(160deg,#5b2a8f,#2b1145); }
@@ -227,12 +226,10 @@ input::placeholder { color: rgba(255,255,255,.4); }
   position: relative; z-index: 2;
   background: rgba(255,255,255,.2);
   display: flex; align-items: center; justify-content: center;
-  transition: box-shadow .3s;
 }
 .tg-avatar-ring img { width: 100%; height: 100%; object-fit: cover; }
 .tg-avatar-ring .ph { font-size: 3rem; opacity: .85; }
 
-/* Рамки аватарки */
 .fr-neon    { border-color: #00e5ff; box-shadow: 0 0 12px #00e5ff, inset 0 0 8px rgba(0,229,255,.5); }
 .fr-ice     { border-color: #9be1ff; box-shadow: 0 0 12px #7fd8ff, inset 0 0 10px rgba(127,216,255,.7); }
 .fr-fire    { border-color: #ff9a3c; box-shadow: 0 0 14px #ff7b2e, inset 0 0 10px rgba(255,120,40,.7); }
@@ -276,7 +273,6 @@ input::placeholder { color: rgba(255,255,255,.4); }
   background: rgba(0,0,0,.22); border: none; border-radius: 16px;
   color: #fff; padding: 12px 4px;
   font-size: .82rem; font-weight: 700; cursor: pointer;
-  transition: transform .15s;
 }
 .tg-actions .act:active { transform: scale(.95); }
 .tg-actions .act .ic { display: block; font-size: 1.3rem; margin-bottom: 4px; }
@@ -351,14 +347,14 @@ input::placeholder { color: rgba(255,255,255,.4); }
 
 @keyframes pinPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
 
-/* ===== АПГРЕЙДЕР (как на фото) ===== */
+/* ===== АПГРЕЙДЕР ===== */
 .upg2 { text-align: center; padding: 10px 0 4px; }
 .upg2-title { font-size: 1.3rem; font-weight: 900; letter-spacing: 2px; color: #e3d63f; margin-bottom: 4px; }
 .upg2-icons { display: flex; gap: 14px; justify-content: center; margin-bottom: 8px; font-size: 1.1rem; opacity: .8; }
 .upg2-ringwrap { position: relative; width: 230px; height: 230px; margin: 0 auto; }
 .upg2-svg { width: 230px; height: 230px; transform: rotate(-90deg); }
 .upg2-track { fill: none; stroke: #26292f; stroke-width: 13; }
-.upg2-arc { fill: none; stroke: #d9cf3e; stroke-width: 13; stroke-linecap: round; transition: stroke-dasharray 1s ease; }
+.upg2-arc { fill: none; stroke: #d9cf3e; stroke-width: 13; stroke-linecap: round; }
 .upg2-inner { fill: #101216; stroke: #23262c; stroke-width: 2; }
 .upg2-pct {
   position: absolute; inset: 0;
@@ -521,4 +517,3 @@ input::placeholder { color: rgba(255,255,255,.4); }
 .packs { margin: 10px 0; }
 
 .muted { opacity: .55; font-size: .85rem; }
-          
