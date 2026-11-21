@@ -78,3 +78,12 @@ main { padding: 16px; }
 /* ВЫБОР ЦВЕТА (АДМИН) */
 .color-picker-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px; }
 .color-btn { width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 2px solid #fff; }
+/* --- РЫНОК В СТИЛЕ ТЕЛЕГРАМ --- */
+.market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.market-card { background: var(--bg2); border-radius: 12px; padding: 15px 10px; text-align: center; cursor: pointer; border: 1px solid #2c3e50; }
+.market-card .nft-icon { font-size: 40px; margin-bottom: 5px; }
+.market-card .nft-name { font-size: 14px; font-weight: bold; color: #fff; }
+.market-card .nft-price { color: #f1c40f; font-weight: bold; margin-top: 5px; font-size: 13px; }
+.market-card .nft-seller { font-size: 10px; color: #888; margin-top: 2px; }
+.market-modal { background: var(--bg); border-radius: 16px; padding: 20px; text-align: center; width: 90%; max-width: 350px; }
+.market-modal h2 { font-size: 20px; color: #fff; margin-bottom: 5px; }
