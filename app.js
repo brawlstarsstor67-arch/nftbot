@@ -894,3 +894,172 @@ function vProf(v) {
       const pinMark = (S.pin === n.id) ? '<span class="g-pin">📌</span>' : '';
       const ser = n.attrs ? '<span class="g-serial">#' + fmt(n.attrs.serial) + '</span>' : '';
       return '<div class="gift-cell ' + vis[0] + '"' + vis[1] + ' onclick="menuNft(' + n.id + ')">' + ser
+      return '<div class="gift-cell ' + vis[0] + '"' + vis[1] + ' onclick="menuNft(' + n.id + ')">' + ser + up + '<span class="spin3d">' + g[1] + '</span>' + pinMark + '</div>';
+    }).join('') + '</div>';
+  } else {
+    h += '<div class="card"><span class="muted">Пока пусто — открой кейс 🎁</span></div>';
+  }
+  h += '<button class="btn-glass full" style="margin-top:12px" onclick="go(\'extra\')">📚 Коллекция · бонус, друзья, NFT</button>';
+  v.innerHTML = h;
+}
+
+function editNick() {
+  const el = document.getElementById("nickedit");
+  if (el) el.style.display = (el.style.display === "none") ? "block" : "none";
+}
+function saveNick() {
+  const val = document.getElementById("nickinp").value.trim();
+  if (val.length < 1) return toast("Ник не может быть пустым");
+  S.nick = val;
+  save();
+  toast("✏️ Ник сохранён!");
+  renderView();
+}
+function editPhone() {
+  if (S.phone) return;
+  const el = document.getElementById("phoneedit");
+  if (el) el.scrollIntoView({ behavior: "smooth" });
+}
+function savePhone() {
+  const val = document.getElementById("phoneinp").value.trim();
+  if (!/^\+?\d[\d\s\-()]{6,}$/.test(val)) return toast("Введи корректный номер");
+  S.phone = val;
+  save();
+  toast("📱 Номер сохранён!");
+  renderView();
+}
+
+function vExtra(v) {
+  const bonusReady = (Date.now() - S.bonus) >= 86400000;
+  let h = '<button class="btn-glass full" onclick="go(\'prof\')">⬅️ Профиль</button>';
+  if (bonusReady) {
+    h += '<button class="btn-glass full" onclick="giveBonus()">🎁 Забрать бонус +1000 ⭐</button>';
+  } else {
+    const left = Math.ceil((86400000 - (Date.now() - S.bonus)) / 3600000);
+    h += '<div class="card"><span class="muted">🎁 Бонус через ~' + left + ' ч.</span></div>';
+  }
+  h += '<div class="card"><b>👥 Мои друзья (' + S.friends.length + ')</b></div>' +
+    '<input id="fid" placeholder="ID друга (узнать: /id у бота)">' +
+    '<button class="btn-glass full" onclick="addFriend()">➕ Добавить по ID</button>';
+  S.friends.forEach(function(f) {
+    h += '<div class="card">👤 ' + f.name + '<br><span class="muted">ID ' + f.id + '</span></div>';
+  });
+  h += '<div class="card"><b>🎁 Забрать NFT по коду</b></div>' +
+    '<input id="claim" placeholder="NFT-XXXXXXXX|Название">' +
+    '<button class="btn-glass full" onclick="claim()">Забрать NFT</button>';
+  v.innerHTML = h;
+}
+
+function giveBonus() {
+  addStars(1000); S.bonus = Date.now(); save(); updateBal();
+  toast("🎁 +1000 звёзд!"); go("extra");
+}
+
+function addFriend() {
+  const id = document.getElementById("fid").value.trim();
+  if (!/^\d+$/.test(id)) return toast("Нужен числовой ID");
+  if (S.friends.some(function(f){ return f.id === id; })) return toast("Уже в друзьях");
+  S.friends.push({ id: id, name: "Друг ···" + id.slice(-4) });
+  save(); toast("✅ Друг добавлен!"); go("extra");
+}
+
+function claim() {
+  const t = document.getElementById("claim").value.trim().split("|");
+  if (t.length !== 2 || !G[t[1].trim()]) return toast("Неверный код");
+  S.nfts.push({ id: S.nid++, gift: t[1].trim(), attrs: makeAttrs(G[t[1].trim()]) });
+  save();
+  toast("🎁 Получен " + t[1].trim() + "!");
+  go("inv");
+}
+
+const LB_KEY = "casino_lb_v1";
+let LB = loadLb();
+function loadLb() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LB_KEY));
+    if (d && d.players) return d;
+  } catch (e) {}
+  const names = ["Артём","Ксюша","Никита","Мария","Дмитрий","Аня","Тимур","Лиза","Олег","Вика"];
+  const players = names.map(function(n){ return { name: n, bal: Math.floor(Math.random() * 900000) + 50000 }; });
+  const d = { players: players };
+  localStorage.setItem(LB_KEY, JSON.stringify(d));
+  return d;
+}
+
+function vBoard(v) {
+  const myTotal = S.bal + S.nfts.reduce(function(a, n){ return a + (G[n.gift] ? G[n.gift][3] : 0); }, 0);
+  const rows = LB.players.map(function(p){ return { name: p.name, total: p.bal, me: false }; });
+  rows.push({ name: (S.nick || ME.first_name || "Ты") + " (ты)", total: myTotal, me: true });
+  rows.sort(function(a, b){ return b.total - a.total; });
+  let h = '<div class="card"><b>🏆 Список лидеров</b><br><span class="muted">Считаем: баланс + стоимость всех твоих NFT</span></div>';
+  rows.forEach(function(r, i) {
+    const medal = i === 0 ? "🥇" : (i === 1 ? "🥈" : (i === 2 ? "🥉" : "▫️"));
+    h += '<div class="lb-row' + (r.me ? ' me' : '') + '">' +
+      '<span class="lb-place">' + medal + ' ' + (i + 1) + '</span>' +
+      '<span class="lb-name">' + r.name + '</span>' +
+      '<span class="lb-val">' + fmt(r.total) + ' ⭐</span></div>';
+  });
+  v.innerHTML = h;
+}
+
+function toggleStarsPicker() { document.getElementById("stars-picker").classList.toggle("show"); }
+function toggleThemePicker() {
+  const el = document.getElementById("theme-picker");
+  if (el) el.classList.toggle("show");
+}
+function toggleColorPicker() {
+  const el = document.getElementById("color-picker");
+  if (el) el.classList.toggle("show");
+}
+
+function buyPackCmd(amount, xtr) {
+  const cmd = "/buy " + amount;
+  if (navigator.clipboard) navigator.clipboard.writeText(cmd);
+  toast("📋 Команда " + cmd + " скопирована — отправь её боту");
+}
+
+function freeStars() {
+  addStars(1000);
+  save(); updateBal();
+  toggleStarsPicker();
+  toast("🎁 +1000 ⭐ зачислено бесплатно!");
+}
+
+function claimPromo() {
+  const code = document.getElementById("promo").value.trim().toUpperCase();
+  const m = code.match(/^STARS-(\d+)-(\d+)$/);
+  if (!m) return toast("Неверный формат. Пример: STARS-1000-12345");
+  const amount = parseInt(m[1], 10);
+  if ([1000, 5000, 10000].indexOf(amount) < 0) return toast("Такого кода нет");
+  addStars(amount);
+  save(); updateBal();
+  document.getElementById("promo").value = "";
+  toggleStarsPicker();
+  toast("⭐ Зачислено +" + fmt(amount) + " звёзд!");
+}
+
+function setTheme(name) {
+  S.theme = name;
+  document.body.classList.remove("theme-xmas", "theme-halloween", "theme-chinese");
+  if (name !== "default") document.body.classList.add("theme-" + name);
+  save();
+}
+
+function setColor(c) { pickColor(c); }
+
+function pickColor(c) {
+  S.color = c;
+  save();
+  toast("🎨 Цвет сохранён!");
+  toggleColorPicker();
+  renderView();
+}
+
+(function init() {
+  const th = S.theme || "default";
+  if (th !== "default") document.body.classList.add("theme-" + th);
+  updateBal();
+  go("roulette");
+})();
+
+alert("НОВЫЙ JS ЗАГРУЖЕН");
