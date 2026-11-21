@@ -108,4 +108,129 @@ body{background:radial-gradient(900px 420px at 50% -120px,#1d1607 0%,#0b0b12 60%
 @keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
 @keyframes glowpulse{0%,100%{filter:drop-shadow(0 0 10px rgba(255,200,60,.35))}50%{filter:drop-shadow(0 0 22px rgba(255,200,60,.8))}}
 @keyframes shine{0%{transform:translateX(-120%)}100%{
-              
+/* ================= РЫНОК (P2P) ================= */
+function vMarket() {
+  const m = $("#market");
+  if (!m) return;
+  m.innerHTML = `
+    <div class="card market-card">
+      <div class="market-header">
+        <h3>💱 Рынок NFT</h3>
+        <button id="btnSell" class="btn btn-gold">Выставить на продажу</button>
+      </div>
+      <div id="marketList" class="market-list"></div>
+    </div>
+  `;
+  $("#btnSell").onclick = () => {
+    if (!S.inv.length) return alert("У вас нет NFT для продажи!");
+    const sel = S.inv.map((i, idx) => `<option value="${idx}">${i.def.name} (${R(i.def.rar).n})</option>`).join("");
+    const html = `
+      <div class="modal">
+        <div class="modal-content">
+          <h3>Выставить NFT на продажу</h3>
+          <select id="sellItemIdx">${sel}</select>
+          <input type="number" id="sellPrice" placeholder="Цена в звёздах" min="1" value="1000">
+          <button class="btn btn-red" onclick="confirmSell()">Подтвердить</button>
+          <button class="btn btn-gray" onclick="$('.modal').remove()">Отмена</button>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML("beforeend", html);
+  };
+
+  function confirmSell() {
+    const idx = +$("#sellItemIdx").value;
+    const price = +$("#sellPrice").value;
+    if (price < 1) return alert("Цена должна быть ≥1");
+    const item = S.inv[idx];
+    S.market.push({ def: item.def, pat: item.pat, back: item.back, custom: item.custom, price, seller: user.first_name });
+    S.inv.splice(idx, 1);
+    save();
+    $(".modal").remove();
+    vMarket();
+  }
+
+  const list = $("#marketList");
+  S.market.sort((a, b) => b.price - a.price);
+  list.innerHTML = S.market.length
+    ? S.market.map((m, i) => `
+        <div class="market-item">
+          <div class="mi-info">
+            <span class="mi-name">${m.def.emoji} ${m.def.name}</span>
+            <span class="mi-rar ${R(m.def.rar).c}">${R(m.def.rar).n}</span>
+          </div>
+          <div class="mi-price">${fmt(m.price)} ⭐</div>
+          <div class="mi-seller">Продавец: ${m.seller}</div>
+          <button class="btn btn-buy" onclick="buyNFT(${i})">Купить</button>
+        </div>`
+      ).join("")
+    : "<p class='text-dim'>Пока нет предложений</p>";
+}
+
+function buyNFT(idx) {
+  const m = S.market[idx];
+  if (S.bal < m.price) return alert("Недостаточно звёзд!");
+  S.bal -= m.price;
+  S.inv.push(mkInst(m.def, { pat: m.pat, back: m.back, custom: m.custom }));
+  S.market.splice(idx, 1);
+  save();
+  alert(`Вы купили ${m.def.name} за ${fmt(m.price)} ⭐`);
+  vMarket();
+  vProfile(); // обновить профиль
+}
+
+/* ================= ПРОФИЛЬ NFT (Telegram-стиль) ================= */
+function vProfile() {
+  const p = $("#profile");
+  if (!p) return;
+  p.innerHTML = `
+    <div class="card profile-card">
+      <div class="profile-header">
+        <h3>👤 Ваш профиль</h3>
+        <span class="badge">Баланс: ${fmt(S.bal)} ⭐</span>
+      </div>
+      <div class="profile-grid">
+        ${S.inv.map((i, idx) => {
+          const isWorn = i.uid === S.worn;
+          const isPinned = S.pinned.includes(i.uid);
+          return `
+            <div class="nft-card ${isWorn ? "nft-worn" : ""} ${isPinned ? "nft-pinned" : ""}">
+              <div class="nc-emoji">${i.def.emoji}</div>
+              <div class="nc-name">${i.def.name}</div>
+              <div class="nc-rar ${R(i.def.rar).c}">${R(i.def.rar).n}</div>
+              <div class="nc-val">Ценность: ${fmt(instVal(i))}</div>
+              <div class="nc-actions">
+                ${!isWorn ? `<button onclick="wearNFT(${idx})" class="btn btn-sm">👑 Носить</button>` : `<span class="status">Носится</span>`}
+                ${!isPinned ? `<button onclick="pinNFT(${idx})" class="btn btn-sm">📌 Закрепить</button>` : `<span class="status">Закреплено</span>`}
+                <button onclick="giveNFT(${idx})" class="btn btn-sm btn-red">📤 Передать</button>
+              </div>
+            </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+}
+
+function wearNFT(idx) {
+  S.worn = S.inv[idx].uid;
+  save();
+  vProfile();
+}
+
+function pinNFT(idx) {
+  const uid = S.inv[idx].uid;
+  if (S.pinned.includes(uid)) S.pinned = S.pinned.filter(u => u !== uid);
+  else S.pinned.push(uid);
+  save();
+  vProfile();
+}
+
+function giveNFT(idx) {
+  const item = S.inv[idx];
+  const code = "STARS-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+  if (S.usedCodes.includes(code)) return giveNFT(idx); // повтор при коллизии
+  S.usedCodes.push(code);
+  alert(`Код для передачи: ${code}\n\nОтправьте этот код другу. Он сможет активировать его в боте.`);
+  // Здесь можно добавить отправку кода через sendData в бот, если нужно
+  save();
+}
+
