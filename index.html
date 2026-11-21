@@ -5,16 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>NFT CASINO</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
 <header class="graffiti-header">NFT CASINO</header>
 
 <div class="top-bar">
-  <div class="balance-box">
+  <div class="balance-box" onclick="toggleStarsPicker()">
     <span class="star">⭐</span>
     <span id="bal">0</span>
+    <span class="plus">＋</span>
   </div>
   <div class="theme-controls">
     <button class="btn-glass mini" onclick="toggleColorPicker()">🎨</button>
@@ -25,15 +26,15 @@
 <nav class="glass-nav">
   <button class="glass-btn" data-tab="roulette" onclick="go('roulette')">🎰 Рулетка</button>
   <button class="glass-btn" data-tab="cases"    onclick="go('cases')">🎁 Кейсы</button>
-  <button class="glass-btn" data-tab="market"   onclick="go('market')">🛍️ Рынок</button>
+  <button class="glass-btn" data-tab="market"   onclick="go('market')">🛒 Маркет</button>
   <button class="glass-btn" data-tab="inv"      onclick="go('inv')">💎 NFT</button>
-  <button class="glass-btn" data-tab="upg"      onclick="go('upg')">⬆️ Апгрейд</button>
+  <button class="glass-btn" data-tab="upg"      onclick="go('upg')">⬆️ Апгрейдер</button>
   <button class="glass-btn" data-tab="prof"     onclick="go('prof')">👤 Профиль</button>
 </nav>
 
 <main id="view"></main>
 
-<div id="color-picker" class="popup glass-panel">
+<div id="color-picker" class="popup">
   <h3>🎨 Цвет оформления</h3>
   <div class="color-grid">
     <button class="color-btn" style="background:#ffd700" onclick="setColor('#ffd700')"></button>
@@ -49,7 +50,7 @@
   <button class="btn-glass" onclick="toggleColorPicker()">Закрыть</button>
 </div>
 
-<div id="theme-picker" class="popup glass-panel">
+<div id="theme-picker" class="popup">
   <h3>🎇 Быстрая тема</h3>
   <div class="theme-list">
     <button class="theme-btn" onclick="setTheme('default')">🌑 Обычная</button>
@@ -60,6 +61,19 @@
   <button class="btn-glass" onclick="toggleThemePicker()">Закрыть</button>
 </div>
 
-<script src="app.js"></script>
+<div id="stars-picker" class="popup">
+  <h3>⭐ Пополнить баланс</h3>
+  <div class="packs">
+    <button class="btn-glass full" onclick="buyPackCmd(1000,100)">+1000 ⭐ за 100 Telegram Stars</button>
+    <button class="btn-glass full" onclick="buyPackCmd(5000,450)">+5000 ⭐ за 450 Telegram Stars</button>
+    <button class="btn-glass full" onclick="buyPackCmd(10000,800)">+10000 ⭐ за 800 Telegram Stars</button>
+  </div>
+  <div class="card" style="text-align:left;font-size:.85rem">Нажми на пакет — команда <code>/buy 1000</code> скопируется. Открой бота, отправь команду, оплати звёздами Telegram — бот пришлёт код. Введи его ниже.</div>
+  <input id="promo" placeholder="STARS-1000-XXXXX">
+  <button class="btn-glass full" onclick="claimPromo()">Активировать код</button>
+  <button class="btn-glass" onclick="toggleStarsPicker()">Закрыть</button>
+</div>
+
+<script src="app.js?v=4"></script>
 </body>
 </html>
