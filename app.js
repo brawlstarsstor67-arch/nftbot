@@ -501,8 +501,396 @@ function confirmList(id) {
   toast("🛒 Выставлено на продажу!");
   go("market");
 }
-
 function cancelList(id) {
   const l = MKT.list.find(function(x){ return x.id === id; });
   if (!l || !l.mine) return;
-  
+  MKT.list = MKT.list.filter(function(x){ return x.id !== id; });
+  S.nfts.push({ id: S.nid++, gift: l.gift, attrs: l.attrs });
+  saveMkt(); save();
+  toast("Снято с продажи"); go("market");
+}
+
+// ---------- Дополнения ----------
+const FRAMES = [
+  {key:"neon", name:"Рамка «Неон»", price:1500},
+  {key:"ice", name:"Рамка «Лёд»", price:2500},
+  {key:"fire", name:"Рамка «Огонь»", price:4000},
+  {key:"gold", name:"Рамка «Золото»", price:6000},
+  {key:"rainbow", name:"Рамка «Радуга»", price:9000}
+];
+
+function vAddons() {
+  let h = '<div class="card"><b>✨ Магазин дополнений</b></div>';
+
+  FRAMES.forEach(function(f) {
+    const owned = S.frames.indexOf(f.key) >= 0;
+    const active = S.activeFrame === f.key;
+    h += '<div class="addon-card"><div class="ic">🖼️</div><div class="mid">' +
+      '<div class="nm">' + f.name + '</div>' +
+      '<div class="ds">' + (owned ? (active ? "Надета" : "Куплена") : "Рамка для аватарки") + '</div></div>' +
+      (owned
+        ? '<button class="btn-glass buy" onclick="equipFrame(\'' + f.key + '\')">' + (active ? "Снять" : "Надеть") + '</button>'
+        : '<button class="btn-glass buy" onclick="buyFrame(\'' + f.key + '\')">' + fmt(f.price) + ' ⭐</button>') +
+      '</div>';
+  });
+
+  h += '<div class="addon-card"><div class="ic">🔢</div><div class="mid">' +
+    '<div class="nm">Номер профиля</div>' +
+    '<div class="ds">' + (S.number ? "Твой номер: #" + S.number : "Уникальный номер в профиле") + '</div></div>' +
+    (S.number
+      ? '<button class="btn-glass buy" onclick="sellNumber()">Продать</button>'
+      : '<button class="btn-glass buy" onclick="buyNumber()">2500 ⭐</button>') +
+    '</div>';
+
+  h += '<div class="addon-card"><div class="ic">📱</div><div class="mid">' +
+    '<div class="nm">Телефон в профиле</div>' +
+    '<div class="ds">' + (S.phoneBought ? "Открыт — можно добавить номер" : "Скрытый номер телефона") + '</div></div>' +
+    (S.phoneBought ? '' : '<button class="btn-glass buy" onclick="buyPhone()">1000 ⭐</button>') +
+    '</div>';
+
+  return h;
+}
+
+function buyFrame(key) {
+  const f = FRAMES.find(function(x){ return x.key === key; });
+  if (!spend(f.price)) return toast("Не хватает звёзд!");
+  S.frames.push(key);
+  S.activeFrame = key;
+  save(); updateBal();
+  toast("🖼️ Рамка куплена и надета!");
+  renderView();
+}
+
+function equipFrame(key) {
+  S.activeFrame = (S.activeFrame === key) ? null : key;
+  save();
+  renderView();
+}
+
+function buyNumber() {
+  if (!spend(2500)) return toast("Не хватает звёзд!");
+  const rare = Math.random() < 0.05;
+  S.number = rare ? Math.floor(Math.random() * 100) + 1 : Math.floor(Math.random() * 9000) + 1000;
+  save(); updateBal();
+  toast("🔢 Твой номер: #" + S.number);
+  renderView();
+}
+
+function sellNumber() {
+  if (!S.number) return;
+  MKT.list.push({ id: MKT.nextId++, type: "number", seller: (S.nick || ME.first_name || "Ты"),
+    number: S.number, price: 1500, mine: true });
+  S.number = null;
+  save(); saveMkt();
+  toast("🔢 Номер выставлен за 1500 ⭐");
+  go("market");
+}
+
+function buyPhone() {
+  if (!spend(1000)) return toast("Не хватает звёзд!");
+  S.phoneBought = true;
+  save(); updateBal();
+  toast("📱 Телефон разблокирован! Добавь номер в профиле");
+  go("prof");
+}
+
+// ================= ИНВЕНТАРЬ =================
+function vInv(v) {
+  if (!S.nfts.length) { v.innerHTML = '<div class="card">Пусто! Открой кейс или купи на маркет у игроков 🎁</div>'; return; }
+  v.innerHTML = '<div class="tg-gift-grid">' + S.nfts.map(function(n) {
+    const g = G[n.gift];
+    const vis = nftVisual(n);
+    const up = n.upgraded ? '<span class="up-badge">UP</span>' : '';
+    const mark = (S.pin === n.id) ? '<span class="g-pin">📌</span>' : ((S.status === n.id) ? '<span class="g-pin">👑</span>' : '');
+    const ser = n.attrs ? '<span class="g-serial">#' + fmt(n.attrs.serial) + '</span>' : '';
+    return '<div class="gift-cell ' + vis[0] + '"' + vis[1] + ' onclick="menuNft(' + n.id + ')">' + ser + up + '<span class="spin3d">' + g[1] + '</span>' + mark + '</div>';
+  }).join('') + '</div>';
+}
+
+// ================= КАРТОЧКА NFT (как в Telegram) =================
+function menuNft(id) {
+  const n = S.nfts.find(function(x){ return x.id === id; });
+  if (!n) return;
+  const g = G[n.gift];
+  const a = n.attrs || makeAttrs(g);
+  const vis = nftVisual(n);
+  const bgChipCls = a.bg === "Rainbow" ? "chip gold" : (a.bg === "Onyx Black" ? "chip dark" : "chip");
+
+  document.getElementById("view").innerHTML =
+    '<div class="nft-hero ' + vis[0] + '"' + vis[1] + '>' +
+      '<div class="serial-badge">#' + fmt(a.serial) + '</div>' +
+      (a.bg === "Rainbow" ? '<div class="rare-badge">🌈 РАДУЖНЫЙ ФОН</div>' : '') +
+      (a.bg === "Onyx Black" ? '<div class="rare-badge">⬛ ЧЁРНЫЙ ФОН</div>' : '') +
+      '<div class="nft-emoji"><span class="spin3d">' + g[1] + '</span></div>' +
+      '<div class="nft-title">' + g[0] + ' #' + fmt(a.serial) + '</div>' +
+      '<div class="nft-sub">' + a.bg + ' · ' + a.pattern + '</div>' +
+      '<div class="hero-row">' +
+        '<button class="btn-glass" onclick="doTransfer(' + id + ')">🎁<br>Передать</button>' +
+        (S.status === id
+          ? '<button class="btn-glass" onclick="doUnwear()">👑<br>Снять</button>'
+          : '<button class="btn-glass" onclick="doStatus(' + id + ')">👑<br>Носить</button>') +
+        '<button class="btn-glass" onclick="doSell(' + id + ')">💱<br>Продать</button>' +
+      '</div>' +
+    '</div>' +
+    '<table class="attr-table">' +
+      '<tr><td>Владелец</td><td>👤 ' + (S.nick || ME.first_name || "Игрок") + (IS_ADMIN ? ' 👑' : '') + '</td></tr>' +
+      '<tr><td>Модель</td><td>' + g[0] + '<span class="chip">' + a.modelPct + '%</span></td></tr>' +
+      '<tr><td>Узор</td><td>' + a.pattern + '<span class="chip">' + (0.1 + Math.random() * 2).toFixed(1) + '%</span></td></tr>' +
+      '<tr><td>Фон</td><td>' + a.bg + '<span class="' + bgChipCls + '">' + (a.bg === "Rainbow" ? "0.2%" : (a.bg === "Onyx Black" ? "0.5%" : "1.5%")) + '</span></td></tr>' +
+      '<tr><td>Количество</td><td>' + fmt(a.minted) + '/' + fmt(a.max) + ' выпущено</td></tr>' +
+      '<tr><td>Ценность</td><td>~' + a.valueUsd + ' $</td></tr>' +
+    '</table>' +
+    (n.upgraded ? '<div class="card"><span style="color:var(--accent)">✨ Улучшено — свой цвет фона!</span></div>' : '<div class="card"><span style="color:#5ac8fa;cursor:pointer" onclick="tryUpg(' + id + ')">⬆️ Улучшить (апгрейдер) ›</span></div>') +
+    (S.pin === id
+      ? '<div class="card"><span class="muted">Подарок виден в Вашем профиле. </span>' +
+        '<span style="color:#5ac8fa;cursor:pointer" onclick="doUnpin(' + id + ')">Скрыть ›</span></div>'
+      : '<div class="card"><span style="color:#5ac8fa;cursor:pointer" onclick="doPin(' + id + ')">📌 Закрепить в профиле ›</span></div>') +
+    '<button class="btn-glass full" onclick="listNft(' + id + ')">🛒 Выставить на маркет</button>' +
+    '<button class="ok-btn" onclick="go(\'inv\')">OK</button>';
+}
+
+function clearMarks(id) {
+  if (S.pin === id) S.pin = null;
+  if (S.status === id) S.status = null;
+}
+
+function doPin(id) { S.pin = id; save(); toast("📌 Закреплено в профиле!"); go("prof"); }
+function doUnpin(id) { if (S.pin === id) S.pin = null; save(); toast("📌 Откреплено"); go("prof"); }
+function doStatus(id) { S.status = id; save(); toast("👑 Новый статус надет (старый снят)"); go("prof"); }
+function doUnwear() { S.status = null; save(); toast("👑 Статус снят"); go("prof"); }
+
+function doSell(id) {
+  const n = S.nfts.find(function(x){ return x.id === id; });
+  if (!n) return;
+  addStars(Math.floor(G[n.gift][3] * 0.7));
+  S.nfts = S.nfts.filter(function(x){ return x.id !== id; });
+  clearMarks(id); save(); updateBal();
+  toast("Продано!"); go("inv");
+}
+
+function doTransfer(id) {
+  const n = S.nfts.find(function(x){ return x.id === id; });
+  if (!n) return;
+  lastCode = "NFT-" + Math.random().toString(36).slice(2,10).toUpperCase() + "|" + n.gift;
+  S.nfts = S.nfts.filter(function(x){ return x.id !== id; });
+  clearMarks(id); save();
+  document.getElementById("view").innerHTML =
+    '<div class="card">🎁 NFT упакован в код. Отправь другу в чат:</div>' +
+    '<div class="card"><b style="word-break:break-all">' + lastCode + '</b></div>' +
+    '<button class="btn-glass full" onclick="copyText()">📋 Скопировать</button>' +
+    '<button class="btn-glass full" onclick="go(\'inv\')">⬅️ Назад</button>';
+}
+
+let lastCode = "";
+function copyText() {
+  if (navigator.clipboard) navigator.clipboard.writeText(lastCode);
+  toast("Скопировано — отправь другу в чат");
+}
+
+// ================= АПГРЕЙДЕР =================
+function upgCost(n) {
+  return Math.max(25, Math.floor(G[n.gift][3] * 0.01));
+}
+
+function vUpg(v) {
+  if (!S.nfts.length) { v.innerHTML = '<div class="card">Нет NFT для улучшения</div>'; return; }
+  let h = '<div class="card">Каждое NFT можно улучшить <b>один раз</b>. Успех — редкость выше и свой цвет фона 🌈. Провал — 💥 сгорает.</div>';
+  const ups = S.nfts.filter(function(n){ return !n.upgraded && RAR.indexOf(G[n.gift][2]) < 4; });
+  if (!ups.length) h += '<div class="card">Все NFT уже улучшены ✨</div>';
+  ups.forEach(function(n) {
+    const g = G[n.gift];
+    const next = RAR[RAR.indexOf(g[2]) + 1];
+    h += '<div class="card" onclick="tryUpg(' + n.id + ')">' + g[1] + ' <b>' + g[0] + '</b><br>' +
+      REMO[g[2]] + ' ' + g[2] + ' → ' + REMO[next] + ' ' + next +
+      '<br><span class="muted">Открыть в апгрейдере ›</span></div>';
+  });
+  S.nfts.filter(function(n){ return n.upgraded; }).forEach(function(n) {
+    const g = G[n.gift];
+    h += '<div class="card">' + g[1] + ' <b>' + g[0] + '</b> <span class="up-badge" style="position:static;display:inline-block">UP ✨</span><br><span class="muted">Уже улучшено</span></div>';
+  });
+  v.innerHTML = h;
+}
+
+function tryUpg(id) {
+  const n = S.nfts.find(function(x){ return x.id === id; });
+  if (!n) return;
+  if (n.upgraded) return toast("Это NFT уже улучшено!");
+  const ti = RAR.indexOf(G[n.gift][2]);
+  if (ti >= 4) return toast("Это максимум — Мифический!");
+  const target = RAR[ti + 1];
+  const cost = upgCost(n);
+  const pool = GIFTS.filter(function(g){ return g[2] === target; });
+  let avg = 0;
+  pool.forEach(function(g){ avg += g[3]; });
+  avg = avg / pool.length;
+  const chance = Math.round(Math.min(85, Math.max(5, G[n.gift][3] / avg * 75)) * 100) / 100;
+  const targetG = rndGift(target);
+  const C = Math.round(2 * Math.PI * 78);
+
+  document.getElementById("view").innerHTML =
+    '<div class="upg2">' +
+      '<div class="upg2-title">⬆ UPGRADER</div>' +
+      '<div class="upg2-icons"><span>ℹ️</span><span>⚙️</span><span>🔊</span><span>⚡</span></div>' +
+      '<div class="upg2-ringwrap">' +
+        '<svg class="upg2-svg" viewBox="0 0 200 200">' +
+          '<circle class="upg2-track" cx="100" cy="100" r="78"/>' +
+          '<circle class="upg2-arc" cx="100" cy="100" r="78" stroke-dasharray="' + (chance/100*C).toFixed(1) + ' ' + C + '"/>' +
+          '<circle class="upg2-inner" cx="100" cy="100" r="60"/>' +
+        '</svg>' +
+        '<div class="upg2-pct">' + chance + '%<span>' + (chance < 40 ? "низкий шанс" : (chance < 70 ? "средний шанс" : "высокий шанс")) + '</span></div>' +
+        '<div class="upg2-tick l">50%</div><div class="upg2-tick r">50%</div><div class="upg2-tick top">100%</div>' +
+      '</div>' +
+      '<div class="upg2-cards">' +
+        '<div class="upg2-item"><div class="cat">' + G[n.gift][2] + '</div><div class="nm">' + G[n.gift][0] + '</div><div class="em"><span class="spin3d">' + G[n.gift][1] + '</span></div><div class="pr">' + fmt(G[n.gift][3]) + ' ⭐</div></div>' +
+        '<div class="upg2-item"><div class="cat">' + targetG[2] + '</div><div class="nm">' + targetG[0] + '</div><div class="em"><span class="spin3d">' + targetG[1] + '</span></div><div class="pr">' + fmt(targetG[3]) + ' ⭐</div></div>' +
+      '</div>' +
+      '<button class="upg2-btn" id="gobtn2" onclick="rollUpg(' + id + ',' + ti + ',' + chance + ',' + cost + ')">⬆ Крутить за ' + fmt(cost) + ' ⭐</button>' +
+    '</div>' +
+    '<button class="btn-glass full" onclick="go(\'upg\')">⬅️ Назад</button>';
+}
+
+function rollUpg(id, ti, chance, cost) {
+  const n = S.nfts.find(function(x){ return x.id === id; });
+  if (!n) return;
+  if (n.upgraded) return toast("Уже улучшено!");
+  if (!spend(cost)) return toast("Не хватает звёзд на апгрейд!");
+  save(); updateBal();
+  const btn = document.getElementById("gobtn2");
+  if (btn) btn.remove();
+  const win = Math.random() * 100 <= chance;
+  const oldG = G[n.gift];
+  const resultG = win ? rndGift(RAR[ti]) : oldG;
+
+  document.getElementById("view").insertAdjacentHTML("beforeend", reelView("Крутим апгрейд..."));
+  fillReel(resultG[1]);
+  spinReel(4, function() {
+    const track = document.getElementById("track");
+    const res = document.getElementById("reelres");
+    if (win) {
+      track.classList.add("upg-flash-win");
+      setTimeout(function() {
+        const hue = Math.floor(Math.random() * 360);
+        n.gift = resultG[0];
+        n.attrs = makeAttrs(resultG);
+        n.hue = hue;
+        n.upgraded = true;
+        save();
+        res.innerHTML = '<div class="pop" style="background:linear-gradient(160deg,hsl(' + hue + ',75%,45%),hsl(' + ((hue+50)%360) + ',75%,20%));border-radius:20px;font-size:4rem;padding:30px 0;margin:0 12px 10px"><span class="spin3d">' + resultG[1] + '</span></div>' +
+          '<div class="card">🎉 <b>АПГРЕЙД УДАЛСЯ!</b><br><b>' + resultG[0] + '</b><br>' + REMO[RAR[ti]] + ' ' + RAR[ti] +
+          '<br><span style="color:var(--accent)">🌈 Получен свой цвет фона! Больше не улучшается.</span></div>' +
+          '<button class="btn-glass full" onclick="go(\'inv\')">💎 Инвентарь</button>';
+      }, 800);
+    } else {
+      track.classList.add("upg-flash-lose");
+      setTimeout(function() {
+        S.nfts = S.nfts.filter(function(x){ return x.id !== id; });
+        clearMarks(id); save();
+        res.innerHTML = '<div class="card pop">💥 <b>Провал!</b><br>' + oldG[1] + ' ' + oldG[0] + ' сгорел...</div>' +
+          '<button class="btn-glass full" onclick="go(\'upg\')">⬅️ Апгрейдер</button>';
+      }, 800);
+    }
+  });
+}
+
+// ================= ПРОФИЛЬ =================
+function vProf(v) {
+  const stN = S.status ? S.nfts.find(function(n){ return n.id === S.status; }) : null;
+
+  if (stN) {
+    const g = G[stN.gift];
+    const a = stN.attrs || { serial: 0 };
+    const vis = nftVisual(stN);
+    v.innerHTML =
+      '<div class="nft-hero ' + vis[0] + '"' + vis[1] + '>' +
+        '<div class="serial-badge">#' + fmt(a.serial) + '</div>' +
+        '<div class="nft-emoji"><span class="spin3d">' + g[1] + '</span></div>' +
+        '<div class="nft-title">' + g[0] + ' #' + fmt(a.serial) + '</div>' +
+        '<div class="hero-row">' +
+          '<button class="btn-glass" onclick="go(\'inv\')">🎁<br>Инвентарь</button>' +
+          '<button class="btn-glass" onclick="doUnwear()">👑<br>Снять</button>' +
+          '<button class="btn-glass" onclick="doSell(' + stN.id + ')">💱<br>Продать</button>' +
+        '</div>' +
+      '</div>' +
+      '<table class="attr-table">' +
+        '<tr><td>Владелец</td><td>👤 ' + (S.nick || ME.first_name || "Игрок") + '</td></tr>' +
+        '<tr><td>Статус</td><td>👑 Надет как статус</td></tr>' +
+      '</table>' +
+      '<div class="benefit"><div class="ico">💎</div><div><b>Мерцающий значок</b><span>Подарок отображается рядом с Вашим именем в виде сияющего значка.</span></div></div>' +
+      '<div class="benefit"><div class="ico">🖼️</div><div><b>Уникальное оформление профиля</b><span>Цвет и фон профиля меняются на цвет и фон подарка.</span></div></div>' +
+      '<div class="benefit"><div class="ico">✅</div><div><b>Подтверждение статуса владельца</b><span>При нажатии на значок откроется информация о нём и его владельце.</span></div></div>' +
+      '<button class="ok-btn" onclick="doUnwear()">Снять статус</button>';
+    return;
+  }
+
+  const pinN = S.pin ? S.nfts.find(function(n){ return n.id === S.pin; }) : null;
+  const gift = pinN ? G[pinN.gift] : null;
+
+  let heroBg = RARBG["Мифический"];
+  if (pinN) heroBg = (nftVisual(pinN)[1] || "").replace(' style="background:', "").replace(/"$/, "") || RARBG[gift[2]];
+
+  let pat = "";
+  for (let i = 0; i < 18; i++) {
+    pat += '<span style="left:' + (Math.random() * 90) + '%;top:' + (Math.random() * 95) + '%;transform:rotate(' + (Math.random() * 60 - 30).toFixed(0) + 'deg)">' + (gift ? gift[1] : "✦") + '</span>';
+  }
+
+  const frameCls = S.activeFrame ? " fr-" + S.activeFrame : "";
+  const phoneRow = S.phoneBought
+    ? '<div class="row" onclick="editPhone()"><div class="val">📱 ' + (S.phone ? S.phone : "Добавить номер…") + '</div><div class="lbl">Телефон (только ты видишь)</div></div>'
+    : '';
+
+  let h =
+  '<div class="tg-hero" style="background:' + heroBg + '">' +
+    '<div class="tg-pattern">' + pat + '</div>' +
+    '<div class="tg-hero-corner l" onclick="go(\'inv\')">▦</div>' +
+    '<div class="tg-hero-corner r" onclick="go(\'extra\')">⋮</div>' +
+    (pinN ? '<span class="tg-pin-chip" onclick="doUnpin(' + pinN.id + ')"><span class="spin3d">' + gift[1] + '</span></span>' : '') +
+    '<div class="tg-avatar-ring' + frameCls + '">' +
+      (ME.photo_url ? '<img src="' + ME.photo_url + '">' : '<div class="ph">👤</div>') +
+    '</div>' +
+    '<div class="tg-name">' + (S.nick || ME.first_name || "Игрок") + (IS_ADMIN ? ' 👑' : '') +
+      (S.number ? '<span class="tg-num-chip">#' + S.number + '</span>' : '') +
+    '</div>' +
+    '<div class="tg-online"><span class="tg-lvl">🚀</span><span style="opacity:.9">в сети</span></div>' +
+    '<div class="tg-actions">' +
+      '<button class="act" onclick="toast(\'Фото берётся из Telegram 🙂\')"><span class="ic">📷</span>Фото</button>' +
+      '<button class="act" onclick="editNick()"><span class="ic">✏️</span>Изменить</button>' +
+      '<button class="act" onclick="toggleColorPicker()"><span class="ic">⚙️</span>Настройки</button>' +
+    '</div>' +
+    '<div class="tg-music" onclick="toast(\'🎵 NFT CASINO — Casino Theme\')">🎵 <b>NFT CASINO</b> — Casino Theme ›</div>' +
+  '</div>' +
+
+  '<div id="nickedit" style="display:none">' +
+    '<input id="nickinp" placeholder="Новый ник" value="' + (S.nick || ME.first_name || "") + '">' +
+    '<button class="ok-btn" onclick="saveNick()">Сохранить ник</button>' +
+  '</div>' +
+  (S.phoneBought && !S.phone
+    ? '<div id="phoneedit"><input id="phoneinp" placeholder="+375 XX XXX-XX-XX">' +
+      '<button class="ok-btn" onclick="savePhone()">Сохранить номер</button></div>'
+    : '') +
+
+  '<div class="tg-info">' +
+    '<div class="row" onclick="editNick()"><div class="val">✏️ ' + (S.nick || ME.first_name || "Игрок") + '</div><div class="lbl">Ник (нажми, чтобы изменить)</div></div>' +
+    '<div class="row noclick"><div class="val">' + (ME.username ? '@' + ME.username : '—') + '</div><div class="lbl">Имя пользователя · из Telegram</div></div>' +
+    phoneRow +
+    '<div class="row noclick"><div class="val" style="color:#5ac8fa"><code>' + ME.id + '</code></div><div class="lbl">ID для друзей и передачи NFT</div></div>' +
+  '</div>' +
+
+  '<div class="tg-tabs">' +
+    '<button class="tg-tab">Публикации</button>' +
+    '<button class="tg-tab">Архив публикаций</button>' +
+    '<button class="tg-tab on">Подарки 🎁</button>' +
+  '</div>' +
+
+  '<div class="tg-chips">' +
+    '<button class="tg-chip">Все подарки</button>' +
+    '<button class="tg-chip add" onclick="go(\'extra\')">+ Добавить коллекцию</button>' +
+  '</div>';
+
+  if (S.nfts.length) {
+    h += '<div class="tg-gift-grid">' + S.nfts.slice(0, 24).map(function(n) {
+      const g = G[n.gift];
+      const vis = nftVisual(n);
+      const up = n.upgraded ? '<span class="up-badge">UP</span>' : '';
+      const pinMark = (S.pin === n.id) ? '<span class="g-pin">📌</span>' : '';
+      const ser = n.attrs ? '<span class="g-serial">#' + fmt(n.attrs.serial) + '</span>' : '';
+      return '<div class="gift-cell ' + vis[0] + '"' + vis[1] + ' onclick="menuNft(' + n.id + ')">' + ser
