@@ -445,3 +445,5 @@ function vMarket(v) {
           '<div class="who">Продавец: ' + l.seller + '</div>' +
           '<div class="nm">Номер профиля #' + l.number + '</div>' +
           '<div class
+alert("НОВЫЙ JS ЗАГРУЖЕН");
+        
