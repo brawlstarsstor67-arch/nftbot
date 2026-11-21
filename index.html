@@ -1,77 +1,151 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>NFT Casino Mini</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NFT CASINO</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
+  body { background:linear-gradient(160deg,#141428,#1e1e3f); color:#fff; min-height:100vh; padding:16px; }
+  h1 { text-align:center; font-size:22px; margin-bottom:4px; color:#ffd700; }
+  .bal { text-align:center; font-size:18px; margin-bottom:16px; }
+  .tabs { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px; }
+  .tab { padding:10px 14px; background:#2a2a4a; border:none; border-radius:12px; color:#fff; font-size:14px; cursor:pointer; }
+  .tab.on { background:#ffd700; color:#141428; font-weight:bold; }
+  .panel { background:#22224a; border-radius:16px; padding:16px; display:none; }
+  .panel.on { display:block; }
+  button.act { display:block; width:100%; margin:8px 0; padding:14px; font-size:16px;
+    background:#7b2ff7; color:#fff; border:none; border-radius:12px; cursor:pointer; }
+  button.act:active { opacity:.7; }
+  .res { margin-top:12px; text-align:center; font-size:18px; min-height:24px; }
+  .nft { background:#2f2f5a; border-radius:10px; padding:10px; margin:6px 0; }
+  .legend { color:#ff4d4d } .mythic { color:#ff9dfb } .epic { color:#a569ff }
+  .rare { color:#4da6ff } .common { color:#9a9ab0 }
+  #bar { height:14px; background:#111; border-radius:7px; overflow:hidden; margin:10px 0; }
+  #fill { height:100%; width:0%; background:linear-gradient(90deg,#ffd700,#ff8c00); transition:width .4s; }
+  .small { font-size:12px; color:#9a9ab0; }
+</style>
 </head>
 <body>
+<h1>🎰 NFT CASINO</h1>
+<div class="bal" id="bal">Баланс: 1000 ⭐</div>
 
-  <!-- Шапка с балансом -->
-  <div class="top-bar">
-    <div class="graffiti-header">NFT CASINO</div>
-    <div class="balance-box" onclick="toggleStarsPicker()">
-      <span class="star">⭐</span>
-      <span id="bal">0</span>
-      <span class="plus">+</span>
-    </div>
-  </div>
+<div class="tabs">
+  <button class="tab on" data-p="p1">🎰 Рулетка</button>
+  <button class="tab" data-p="p2">🎁 Кейсы</button>
+  <button class="tab" data-p="p3">💎 Инвентарь</button>
+  <button class="tab" data-p="p4">⬆️ Апгрейдер</button>
+  <button class="tab" data-p="p5">👤 Профиль</button>
+</div>
 
-  <!-- Навигация -->
-  <nav class="glass-nav">
-    <button class="glass-btn" data-tab="roulette" onclick="go('roulette')">🎰 Рулетка</button>
-    <button class="glass-btn" data-tab="cases" onclick="go('cases')">🎁 Кейсы</button>
-    <button class="glass-btn" data-tab="inv" onclick="go('inv')">💎 Инвентарь</button>
-    <button class="glass-btn" data-tab="upg" onclick="go('upg')">⬆️ Апгрейдер</button>
-    <button class="glass-btn" data-tab="market" onclick="go('market')">🛒 Рынок</button>
-    <button class="glass-btn" data-tab="prof" onclick="go('prof')">👤 Профиль</button>
-  </nav>
+<div class="panel on" id="p1">
+  <p class="small">Ставка 100 ⭐. Три одинаковых — x8, два — x2.5</p>
+  <button class="act" onclick="spin()">Крутить 🎡</button>
+  <div class="res" id="r1"></div>
+</div>
 
-  <!-- Основной экран -->
-  <div id="view"></div>
+<div class="panel" id="p2">
+  <button class="act" onclick="openCase('Обычный кейс',100)">Обычный кейс — 100 ⭐</button>
+  <button class="act" onclick="openCase('Редкий кейс',300)">Редкий кейс — 300 ⭐</button>
+  <button class="act" onclick="openCase('Легендарный кейс',800)">Легендарный кейс — 800 ⭐</button>
+  <div class="res" id="r2"></div>
+</div>
 
-  <!-- Поп-апы: звёзды, цвет, тема, промокод -->
-  <div id="stars-picker" class="card" style="display:none; text-align:center;">
-    <h3>Пополнение</h3>
-    <p>Выберите количество звёзд:</p>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
-      <button class="mini" onclick="buyPackOpen(50)">50 ⭐</button>
-      <button class="mini" onclick="buyPackOpen(150)">150 ⭐</button>
-      <button class="mini" onclick="buyPackOpen(500)">500 ⭐</button>
-    </div>
-    <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:16px 0;" />
-    <input id="promo" type="text" placeholder="Промокод" />
-    <button class="ok-btn" onclick="claimPromo()">Активировать</button>
-    <button class="btn-glass" onclick="toggleStarsPicker()" style="margin-top:8px;">Закрыть</button>
-  </div>
+<div class="panel" id="p3">
+  <div id="inv"><p class="small">Пусто. Открывай кейсы!</p></div>
+</div>
 
-  <div id="color-picker" class="card" style="display:none; text-align:center;">
-    <h3>Цвет акцента</h3>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
-      <button class="mini" style="background:#ffd700; color:#000;" onclick="setColor('#ffd700')">Золото</button>
-      <button class="mini" style="background:#ff4757; color:#fff;" onclick="setColor('#ff4757')">Красный</button>
-      <button class="mini" style="background:#2ed573; color:#fff;" onclick="setColor('#2ed573')">Зелёный</button>
-      <button class="mini" style="background:#1e90ff; color:#fff;" onclick="setColor('#1e90ff')">Синий</button>
-      <button class="mini" style="background:#a450e6; color:#fff;" onclick="setColor('#a450e6')">Фиолетовый</button>
-    </div>
-    <button class="btn-glass" onclick="toggleColorPicker()" style="margin-top:12px;">Закрыть</button>
-  </div>
+<div class="panel" id="p4">
+  <p>Прогресс: <span id="upgPct">37</span>%</p>
+  <div id="bar"><div id="fill" style="width:37%"></div></div>
+  <p class="small">Цена апгрейда: 1200 ⭐. Шанс успеха 65%, при провале прогресс −15%</p>
+  <button class="act" onclick="upgrade()">Апгрейд за 1200 ⭐</button>
+  <div class="res" id="r4"></div>
+</div>
 
-  <div id="theme-picker" class="card" style="display:none; text-align:center;">
-    <h3>Тема оформления</h3>
-    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
-      <button class="mini" onclick="setTheme('default')">Стандартная</button>
-      <button class="mini" onclick="setTheme('xmas')">Новогодняя</button>
-      <button class="mini" onclick="setTheme('halloween')">Хэллоуин</button>
-      <button class="mini" onclick="setTheme('chinese')">Китайский Новый год</button>
-    </div>
-    <button class="btn-glass" onclick="toggleThemePicker()" style="margin-top:12px;">Закрыть</button>
-  </div>
+<div class="panel" id="p5">
+  <p>NFT в коллекции: <span id="cnt">0</span></p>
+  <p class="small">ID для друзей: смотри команду /id у бота</p>
+</div>
 
-  <div id="toast"></div>
+<script>
+  // СРАЗУ ВИДИМ БАЛАНС ИГРОКА — подтянется, когда бот пришлёт данные
+  let bal = 1000, prog = 37, tier = 1, cost = 1200, nfts = [];
+  const rar = [
+    {n:"Обычный",   c:"common", w:60},
+    {n:"Редкий",    c:"rare",   w:25},
+    {n:"Эпический", c:"epic",   w:10},
+    {n:"Легендарный",c:"legend",w:4},
+    {n:"Мифический",c:"mythic", w:1},
+  ];
+  const names = ["Анонимный Дракон","Кибер-Череп","Золотой Боксёр","Неоновый Волк","Призрачный Самурай","Токсичный Слизень"];
+  const ems   = ["🐉","💀","🥊","🐺","🥷","🦠"];
 
-  <script src="app.js"></script>
+  function draw(){
+    document.getElementById("bal").textContent = "Баланс: " + bal + " ⭐";
+    document.getElementById("cnt").textContent = nfts.length;
+    document.getElementById("upgPct").textContent = prog;
+    document.getElementById("fill").style.width = prog + "%";
+    const inv = document.getElementById("inv");
+    inv.innerHTML = nfts.length ? "" : '<p class="small">Пусто. Открывай кейсы!</p>';
+    nfts.forEach((f,i)=>{
+      const d = document.createElement("div");
+      d.className = "nft";
+      d.innerHTML = f.e + " " + f.n + ' <span class="' + f.c + '">(' + f.r + ')</span> <span class="small">— закрепить можно у бота</span>';
+      inv.appendChild(d);
+    });
+  }
+
+  function tab(el, id){
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("on"));
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("on"));
+    el.classList.add("on");
+    document.getElementById(id).classList.add("on");
+  }
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.addEventListener("click", ()=>tab(t, t.dataset.p));
+  });
+
+  function spin(){
+    if (bal < 100) return msg("r1","❌ Не хватает звёзд");
+    bal -= 100;
+    const ic = ["🎲","💎","🔥","⚡","⭐","🎱","🃏","🍀"];
+    const res = [0,0,0].map(()=>ic[Math.floor(Math.random()*ic.length)]);
+    let win = 0;
+    if (res[0]===res[1] && res[1]===res[2]) win = 800;
+    else if (res[0]===res[1] || res[1]===res[2] || res[0]===res[2]) win = 250;
+    if (win) bal += win;
+    draw();
+    msg("r1", res.join(" ") + (win ? " 🎉 +"+win : " 😢 мимо"));
+  }
+
+  function openCase(title, price){
+    if (bal < price) return msg("r2","❌ Не хватает звёзд");
+    bal -= price;
+    const total = rar.reduce((s,r)=>s+r.w,0);
+    let x = Math.random()*total, pick = rar[0];
+    for (const r of rar){ if ((x -= r.w) <= 0){ pick = r; break; } }
+    const i = Math.floor(Math.random()*names.length);
+    nfts.push({n:names[i], e:ems[i], r:pick.n, c:pick.c});
+    draw();
+    msg("r2", "🎉 " + ems[i] + " " + names[i] + " — " + pick.n + "!");
+  }
+
+  function upgrade(){
+    if (bal < cost) return msg("r4","❌ Не хватает звёзд");
+    bal -= cost;
+    if (Math.random() < 0.65){
+      prog += 15; if (prog >= 100){ prog = 0; tier++; cost = cost*2; msg("r4","🏆 УСПЕХ! Уровень " + tier + "!"); }
+      else msg("r4","✅ Апгрейд удался! +" + prog + "%");
+    } else {
+      prog = Math.max(0, prog-15);
+      msg("r4","💥 Провал! Прогресс −15%");
+    }
+    draw();
+  }
+
+  function msg(id, text){ document.getElementById(id).textContent = text; }
+  draw();
+</script>
 </body>
 </html>
