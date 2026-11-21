@@ -2,164 +2,215 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NFT Bot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>GiftBoost</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
 <div id="app">
-  <header>
-    <button class="nav-btn active" data-tab="profile">👤</button>
-    <button class="nav-btn" data-tab="roulette">🎰</button>
-    <button class="nav-btn" data-tab="cases">🎁</button>
-    <button class="nav-btn" data-tab="market">🛒</button>
-    <button class="nav-btn" data-tab="topup">💳</button>
-  </header>
-
   <main>
-    <!-- ПРОФИЛЬ -->
-    <section id="tab-profile" class="tab active">
-      <div class="profile-header">
-        <div class="avatar-container">
-          <div class="orbiting-nfts" id="orbit-container"></div>
-          <div class="avatar" id="avatar">👤</div>
+    <!-- ВКЛАДКА 1: КЕЙСЫ (Как на последнем фото) -->
+    <section id="tab-cases" class="tab active">
+      <header class="top-bar">
+        <button class="back-pill">← Назад</button>
+        <div class="top-stats">
+          <span>👥 58</span>
+          <span>👤 161,541</span>
+          <span>💎 <span id="balance-top">0.00</span></span>
+          <button class="topup-btn-small" onclick="topupRequest(1000)">+ Пополнить</button>
         </div>
-        <h2 id="username">Твой Ник</h2>
-        
-        <div class="tg-frames">
-            <div class="tg-frame" onclick="editPhone()">
-                <span class="tg-label">Телефон</span>
-                <span class="tg-value" id="phone-display">+7 999 000-00-00</span>
-            </div>
-            <div class="tg-frame" onclick="editUz()">
-                <span class="tg-label">Юз</span>
-                <span class="tg-value" id="uz-text">@my_username</span>
-            </div>
-            <div class="tg-frame" onclick="editBio()">
-                <span class="tg-label">О себе</span>
-                <span class="tg-value" id="bio">Описание профиля...</span>
-            </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>💰 Игровой баланс</h3>
-        <div id="balance-game" class="big">0 ⭐</div>
-      </div>
-
-      <div class="card">
-        <h3>🏆 Мои подарки</h3>
-        <div id="my-nfts" class="grid-3"></div>
-      </div>
-    </section>
-
-    <!-- РУЛЕТКА -->
-    <section id="tab-roulette" class="tab">
-      <div class="card" style="text-align:center;">
-        <h2>Рулетка</h2>
-        <div class="wheel-wrapper">
-            <div class="wheel" id="wheel">
-                <div class="sector win" style="transform: rotate(0deg);">Победа</div>
-                <div class="sector lose" style="transform: rotate(90deg);">Проигрыш</div>
-                <div class="sector win" style="transform: rotate(180deg);">Победа</div>
-                <div class="sector lose" style="transform: rotate(270deg);">Проигрыш</div>
-            </div>
-            <div class="wheel-arrow" id="wheel-arrow">▲</div>
-        </div>
-        <button id="spin-btn" class="btn primary" onclick="spinWheel()">Крутить (100⭐)</button>
-      </div>
-    </section>
-
-    <!-- КЕЙСЫ -->
-    <section id="tab-cases" class="tab">
-      <h2>Кейсы</h2>
-      <div id="cases-grid" class="grid"></div>
+        <div class="avatar-mini"></div>
+      </header>
       
-      <div id="case-roll-container" class="hidden">
-          <div class="case-tape-wrapper">
-              <div class="case-tape" id="case-tape"></div>
-              <div class="tape-pointer">▼</div>
+      <div class="cases-hero">
+        <h1>Участвуй в розыгрышах<br>и забирай <span class="yellow-text">призы</span></h1>
+        <p>Пополняй баланс, выполняй условия участия и получай шанс выиграть ценные призы</p>
+        
+        <div class="free-case-banner">
+          <div class="free-case-img">🛡️</div>
+          <div class="free-case-text">Бесплатный NFT Кейс</div>
+          <div class="free-case-arrow">›</div>
+        </div>
+        
+        <div class="tabs-switch">
+          <button class="active">Проекта</button>
+          <button>Партнёров</button>
+        </div>
+
+        <div class="soon-case">
+          <div class="soon-img">👾</div>
+          <div class="soon-info">
+            <h3>Скоро новый розыгрыш</h3>
+            <p>Подбираем приз из банка. Загляните чуть позже — таймер появится здесь.</p>
           </div>
-          <div id="case-result" class="hidden" style="margin-top: 20px; text-align: center; font-size: 20px; font-weight: bold;"></div>
+        </div>
       </div>
     </section>
 
-    <!-- РЫНОК (TELEGRAM STYLE) -->
-    <section id="tab-market" class="tab">
-      <h2>Рынок</h2>
-      <div id="market-grid" class="market-grid"></div>
+    <!-- ВКЛАДКА 2: ТУРНИР (Как на первом фото) -->
+    <section id="tab-tournament" class="tab">
+      <header class="top-bar">
+        <button class="back-pill">← Назад</button>
+        <div class="top-stats">
+          <span>👥 58</span>
+          <span>👤 161,541</span>
+          <span>💎 <span id="balance-tour">0.00</span></span>
+          <button class="topup-btn-small" onclick="topupRequest(1000)">+ Пополнить</button>
+        </div>
+        <div class="avatar-mini"></div>
+      </header>
+
+      <div class="tournament-hero">
+        <h1 class="gta-title">GTA<br>TOURNAMENT</h1>
+        <p class="gta-subtitle">Забусти как можно больше своих подарков и выигрывай в турнире.</p>
+      </div>
+
+      <div class="podium-container">
+        <!-- 2 Место -->
+        <div class="podium-item place-2">
+          <div class="avatar-ring silver-ring"></div>
+          <div class="user-name">crypto_prin...</div>
+          <div class="user-stats">
+            <div class="stat-pill"><span class="icon-coin">🪙</span> 844.2</div>
+            <div class="stat-pill"><span class="icon-star">💎</span> 333</div>
+          </div>
+          <div class="podium-block"><span class="podium-number">2</span></div>
+        </div>
+
+        <!-- 1 Место -->
+        <div class="podium-item place-1">
+          <div class="avatar-ring gold-ring"></div>
+          <div class="user-name">fffggger</div>
+          <div class="user-stats">
+            <div class="stat-pill"><span class="icon-star">💎</span> 444</div>
+            <div class="stat-pill"><span class="icon-coin">🪙</span> 847.77</div>
+          </div>
+          <div class="podium-block">
+            <span class="podium-number">1</span>
+            <div class="timer-box">
+              <div class="time-seg"><span>8</span><small>Дней</small></div>
+              <div class="time-seg"><span>8</span><small>Час.</small></div>
+              <div class="time-seg"><span>49</span><small>Мин.</small></div>
+              <div class="time-seg"><span>46</span><small>Сек.</small></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Место -->
+        <div class="podium-item place-3">
+          <div class="avatar-ring bronze-ring"></div>
+          <div class="user-name">ToncoinDr</div>
+          <div class="user-stats">
+            <div class="stat-pill"><span class="icon-coin">🪙</span> 484.94</div>
+            <div class="stat-pill"><span class="icon-star">💎</span> 222</div>
+          </div>
+          <div class="podium-block"><span class="podium-number">3</span></div>
+        </div>
+      </div>
+
+      <div class="my-place-card">
+        <div class="my-place-left">
+          <div class="avatar-mini"></div>
+          <div>
+            <div class="user-name" style="text-align:left; margin:0;">vazikonov</div>
+            <div class="place-label">Ваше место</div>
+          </div>
+        </div>
+        <div class="my-place-right">
+          <div class="stat-pill"><span class="icon-coin">🪙</span> 0</div>
+          <div class="stat-pill"><span class="icon-star">💎</span> 0</div>
+        </div>
+      </div>
     </section>
 
-    <!-- ПОПОЛНЕНИЕ -->
-    <section id="tab-topup" class="tab">
-      <h2>Пополнение</h2>
-      <p style="font-size: 12px; color: gray; margin-bottom: 10px;">100 игровых ⭐ = 50 реальных ⭐</p>
-      <div id="topup-grid" class="grid-3"></div>
+    <!-- ВКЛАДКА 3: ПРОФИЛЬ (Как на втором фото) -->
+    <section id="tab-profile" class="tab">
+      <header class="profile-top-bar">
+        <button class="back-pill">← Назад</button>
+        <div class="top-bar-right"><button class="icon-btn">⌄</button><button class="icon-btn">⋮</button></div>
+      </header>
+
+      <div class="user-row">
+        <div class="user-info">
+          <div class="avatar-small"></div>
+          <span class="username">vazikonov</span>
+        </div>
+        <button class="connect-wallet-btn"><span class="wallet-icon">C</span> Подключить кошелёк</button>
+      </div>
+
+      <div class="balance-section">
+        <div class="balance-label">Ваш баланс</div>
+        <div class="balance-big" id="main-balance">999,999,999</div>
+      </div>
+      
+      <div class="topup-row">
+        <button class="btn-yellow" onclick="topupRequest(1000)">Пополнить</button>
+        <button class="btn-round"><span>↺</span></button>
+      </div>
+
+      <div class="free-case-banner">
+        <div class="free-case-img">🛡️</div>
+        <div class="free-case-text">Бесплатный NFT Кейс</div>
+        <div class="free-case-arrow">›</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-icon">$</div>
+          <div class="stat-val">0 💎</div>
+          <div class="stat-name">Выведено</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon">^</div>
+          <div class="stat-val">0</div>
+          <div class="stat-name">Бустов</div>
+        </div>
+      </div>
+
+      <div class="referral-box">
+        <div class="ref-header">
+          <span class="ref-title">👥 Реферальная программа</span>
+          <span class="ref-sub">10% от депозитов рефералов</span>
+        </div>
+        <div class="ref-stats">
+          <div class="ref-stat"><div class="stat-val">0</div><div class="stat-name">Рефералов</div></div>
+          <button class="btn-plus">+</button>
+          <div class="ref-stat"><div class="stat-val">0.00 💎</div><div class="stat-name">Заработано</div></div>
+        </div>
+        <div class="ref-link-box">
+          <span class="ref-url">https://t.me/GiftBoostapp_bot?starta...</span>
+          <button class="icon-btn">⎘</button>
+        </div>
+      </div>
+
+      <div class="best-boost-banner">
+        <div class="bb-left"><span class="bb-crown">👑</span><span class="bb-text">Лучший буст</span></div>
+        <div class="bb-tags"><span class="tag-free">FREE</span><span class="tag-price">$2500</span></div>
+      </div>
     </section>
   </main>
+
+  <!-- НИЖНЯЯ НАВИГАЦИЯ -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="cases"><span class="icon">🎁</span></button>
+    <button class="nav-btn" data-tab="tournament"><span class="icon">🏆</span></button>
+    <button class="nav-btn" data-tab="trade"><span class="icon">🔄</span></button>
+    <button class="nav-btn" data-tab="profile"><span class="icon">👤</span></button>
+    <button class="nav-btn" data-tab="tiktok"><span class="icon">🎵</span></button>
+  </nav>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО: ПРЕДПРОСМОТР КЕЙСА -->
-<div id="modal-case-preview" class="modal hidden">
+<!-- МОДАЛЬНОЕ ОКНО ВЫИГРЫША -->
+<div id="modal-win" class="modal hidden">
   <div class="modal-content">
-    <h2 id="preview-case-name">Кейс</h2>
-    <div id="preview-case-list" style="margin: 15px 0; text-align: left; font-size: 14px;"></div>
-    <div style="font-size: 12px; color: #f1c40f; margin-bottom: 15px;" id="preview-case-min-price">Мин. цена: 0⭐</div>
-    <button class="btn primary" onclick="confirmBuyCase()">Купить кейс</button>
-    <button class="btn" style="margin-top: 8px; background: #333;" onclick="closeModal('modal-case-preview')">Отмена</button>
-  </div>
-</div>
-
-<!-- МОДАЛЬНОЕ ОКНО NFT -->
-<div id="modal-nft" class="modal hidden">
-  <div class="modal-content nft-modal">
-    <div class="nft-bg-preview" id="nft-preview-bg">
-      <div id="nft-preview-emoji" style="font-size: 100px;">🎁</div>
-    </div>
-    <h2 id="nft-preview-name">Мишка</h2>
-    <div id="nft-preview-rarity" class="rarity-tag">Обычный</div>
-    <div class="nft-info">
-      <div>Номер: <b id="nft-preview-number">#1</b></div>
-      <div>Цена: <b id="nft-preview-price">100</b> ⭐</div>
-    </div>
-    
-    <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button class="btn primary" style="flex:1;" onclick="upgradeNft()">✨ Улучшить</button>
-        <button class="btn" style="flex:1; background: #e74c3c;" onclick="sellNft()">💰 Продать</button>
-    </div>
-    <button class="btn" style="margin-top: 8px; background: #27ae60;" onclick="pinNft()">📌 Закрепить</button>
-    <button class="btn admin-only" style="margin-top: 8px; background: #9b59b6; display:none;" onclick="openColorPicker()">🎨 Сменить фон (Админ)</button>
-    <button class="btn" style="margin-top: 8px; background: #333;" onclick="closeModal('modal-nft')">Закрыть</button>
-  </div>
-</div>
-
-<!-- МОДАЛЬНОЕ ОКНО: ВЫБОР ЦВЕТА (АДМИН) -->
-<div id="modal-color-picker" class="modal hidden">
-  <div class="modal-content">
-    <h2>Выберите фон</h2>
-    <div class="color-picker-grid" id="color-picker-grid"></div>
-    <button class="btn" style="margin-top: 15px; background: #333;" onclick="closeModal('modal-color-picker')">Отмена</button>
-  </div>
-</div>
-
-<!-- МОДАЛЬНОЕ ОКНО: РЫНОК (TELEGRAM) -->
-<div id="modal-market-item" class="modal hidden">
-  <div class="modal-content market-modal">
-    <div class="market-item-header">
-      <div class="market-item-big-icon" id="market-item-big-icon">🎩</div>
-      <div class="market-item-title" id="market-item-title">Шляпа #1</div>
-      <div class="market-item-rarity" id="market-item-rarity">Редкий</div>
-    </div>
-    
-    <div class="market-item-price" id="market-item-price">2000 ⭐</div>
-    <div class="market-item-seller" id="market-item-seller">Продавец: @vazikonov</div>
-    
-    <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button class="btn" style="flex:1; background: #f1c40f; color: #000;" onclick="promptOffer()">ПРЕДЛОЖИТЬ</button>
-        <button class="btn" style="flex:1; background: #3498db;" onclick="buyMarketItem()">КУПИТЬ</button>
-    </div>
-    <button class="btn" style="margin-top: 8px; background: #333;" onclick="closeModal('modal-market-item')">Закрыть</button>
+    <h2 style="color:#f1c40f; margin-bottom: 15px;">🎉 ВЫПАЛО!</h2>
+    <div class="nft-bg-preview" id="win-bg"><div id="win-emoji" style="font-size: 80px;">🎁</div></div>
+    <h2 id="win-name">Мишка</h2>
+    <div id="win-rarity" style="color: #aaa; font-size: 12px; margin-bottom: 10px;">Обычный</div>
+    <div style="font-size: 18px; font-weight: bold; margin-bottom: 20px;">Стоимость: <span id="win-price">100</span> ⭐</div>
+    <button class="btn-yellow" style="width:100%;" onclick="document.getElementById('modal-win').classList.add('hidden')">Забрать</button>
   </div>
 </div>
 
