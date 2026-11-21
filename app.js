@@ -441,9 +441,68 @@ function vMarket(v) {
     }
     MKT.list.forEach(function(l) {
       if (l.type === "number") {
+              if (l.type === "number") {
         h += '<div class="mkt-card"><div class="em">🔢</div><div class="mid">' +
           '<div class="who">Продавец: ' + l.seller + '</div>' +
           '<div class="nm">Номер профиля #' + l.number + '</div>' +
-          '<div class
-alert("НОВЫЙ JS ЗАГРУЖЕН");
-        
+          '<div class="ser">Номер для профиля</div></div>' +
+          '<button class="btn-glass buy" onclick="buyListing(' + l.id + ')">' + fmt(l.price) + ' ⭐</button></div>';
+      } else {
+        const g = G[l.gift];
+        h += '<div class="mkt-card"><div class="em"><span class="spin3d">' + g[1] + '</span></div><div class="mid">' +
+          '<div class="who">Продавец: ' + l.seller + '</div>' +
+          '<div class="nm">' + g[0] + '</div>' +
+          '<div class="ser">' + REMO[g[2]] + ' ' + g[2] + ' · #' + fmt(l.attrs.serial) + '</div></div>' +
+          '<button class="btn-glass buy" onclick="buyListing(' + l.id + ')">' + fmt(l.price) + ' ⭐</button></div>';
+      }
+    });
+  } else {
+    h += vAddons();
+  }
+  v.innerHTML = h;
+}
+
+function mktTab(t) { MKT_TAB = t; renderView(); }
+
+function buyListing(id) {
+  const l = MKT.list.find(function(x){ return x.id === id; });
+  if (!l) return;
+  if (!spend(l.price)) return toast("Не хватает звёзд!");
+  if (l.type === "number") {
+    S.number = l.number;
+  } else {
+    S.nfts.push({ id: S.nid++, gift: l.gift, attrs: l.attrs });
+  }
+  MKT.list = MKT.list.filter(function(x){ return x.id !== id; });
+  save(); saveMkt(); updateBal();
+  toast("✅ Куплено!");
+  renderView();
+}
+
+function listNft(id) {
+  const n = S.nfts.find(function(x){ return x.id === id; });
+  if (!n) return;
+  document.getElementById("view").innerHTML =
+    '<button class="btn-glass full" onclick="go(\'inv\')">⬅️ Назад</button>' +
+    '<div class="card"><b>🛒 Выставить на продажу</b><br>' +
+    '<br><span class="muted">Появится в разделе «У игроков». Снять — в любой момент.</span></div>' +
+    '<input id="lprice" placeholder="Цена в ⭐ (например ' + fmt(Math.floor(G[n.gift][3]*1.1)) + ')">' +
+    '<button class="ok-btn" onclick="confirmList(' + id + ')">Выставить</button>';
+}
+
+function confirmList(id) {
+  const n = S.nfts.find(function(x){ return x.id === id; });
+  const p = parseInt(document.getElementById("lprice").value.replace(/\s/g, ""));
+  if (!n || !p || p < 1) return toast("Укажи цену");
+  MKT.list.push({ id: MKT.nextId++, type: "gift", seller: (S.nick || ME.first_name || "Ты"),
+    gift: n.gift, attrs: n.attrs, price: p, mine: true });
+  S.nfts = S.nfts.filter(function(x){ return x.id !== id; });
+  clearMarks(id); save(); saveMkt();
+  toast("🛒 Выставлено на продажу!");
+  go("market");
+}
+
+function cancelList(id) {
+  const l = MKT.list.find(function(x){ return x.id === id; });
+  if (!l || !l.mine) return;
+  
