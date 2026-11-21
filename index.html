@@ -27,7 +27,6 @@
         </div>
         <h2 id="username">Твой Ник</h2>
         
-        <!-- РАМКИ КАК В ТГ -->
         <div class="tg-frames">
             <div class="tg-frame" onclick="editPhone()">
                 <span class="tg-label">Телефон</span>
@@ -58,7 +57,7 @@
     <!-- РУЛЕТКА -->
     <section id="tab-roulette" class="tab">
       <div class="card" style="text-align:center;">
-        <h2>🎰 Рулетка</h2>
+        <h2>Рулетка</h2>
         <div class="wheel-wrapper">
             <div class="wheel" id="wheel">
                 <div class="sector win" style="transform: rotate(0deg);">Победа</div>
@@ -74,7 +73,7 @@
 
     <!-- КЕЙСЫ -->
     <section id="tab-cases" class="tab">
-      <h2>🎁 Кейсы NFT</h2>
+      <h2>Кейсы</h2>
       <div id="cases-grid" class="grid"></div>
       
       <div id="case-roll-container" class="hidden">
@@ -86,15 +85,15 @@
       </div>
     </section>
 
-    <!-- РЫНОК -->
+    <!-- РЫНОК (TELEGRAM STYLE) -->
     <section id="tab-market" class="tab">
-      <h2>🛒 Рынок (Standoff 2)</h2>
-      <div id="market-list" class="market-list"></div>
+      <h2>Рынок</h2>
+      <div id="market-grid" class="market-grid"></div>
     </section>
 
     <!-- ПОПОЛНЕНИЕ -->
     <section id="tab-topup" class="tab">
-      <h2>💳 Пополнение звёзд</h2>
+      <h2>Пополнение</h2>
       <p style="font-size: 12px; color: gray; margin-bottom: 10px;">100 игровых ⭐ = 50 реальных ⭐</p>
       <div id="topup-grid" class="grid-3"></div>
     </section>
@@ -141,6 +140,26 @@
     <h2>Выберите фон</h2>
     <div class="color-picker-grid" id="color-picker-grid"></div>
     <button class="btn" style="margin-top: 15px; background: #333;" onclick="closeModal('modal-color-picker')">Отмена</button>
+  </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО: РЫНОК (TELEGRAM) -->
+<div id="modal-market-item" class="modal hidden">
+  <div class="modal-content market-modal">
+    <div class="market-item-header">
+      <div class="market-item-big-icon" id="market-item-big-icon">🎩</div>
+      <div class="market-item-title" id="market-item-title">Шляпа #1</div>
+      <div class="market-item-rarity" id="market-item-rarity">Редкий</div>
+    </div>
+    
+    <div class="market-item-price" id="market-item-price">2000 ⭐</div>
+    <div class="market-item-seller" id="market-item-seller">Продавец: @vazikonov</div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+        <button class="btn" style="flex:1; background: #f1c40f; color: #000;" onclick="promptOffer()">ПРЕДЛОЖИТЬ</button>
+        <button class="btn" style="flex:1; background: #3498db;" onclick="buyMarketItem()">КУПИТЬ</button>
+    </div>
+    <button class="btn" style="margin-top: 8px; background: #333;" onclick="closeModal('modal-market-item')">Закрыть</button>
   </div>
 </div>
 
