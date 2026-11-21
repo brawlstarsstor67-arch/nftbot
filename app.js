@@ -48,6 +48,24 @@ const REMO = {"Обычный":"⚪","Редкий":"🔵","Эпический":
 const G = {};
 GIFTS.forEach(function(g){ G[g[0]] = g; });
 
+const PATTERNS = ["Aztec Falcon","Dotted Purple","Snake Garden","Cosmic Swirl","Gold Orbit","Ice Bloom"];
+const NFTBGS = ["Pacific Green","Midnight Blue","Rose Dawn","Violet Haze","Golden Sunset","Onyx Black"];
+const SUPPLY = {"Обычный":500000,"Редкий":200000,"Эпический":100000,"Легендарный":50000,"Мифический":10000};
+
+function makeAttrs(g) {
+  const max = SUPPLY[g[2]];
+  const minted = Math.floor(Math.random() * max * 0.9) + 1;
+  return {
+    serial: Math.floor(Math.random() * 499999) + 1,
+    pattern: PATTERNS[Math.floor(Math.random() * PATTERNS.length)],
+    bg: NFTBGS[Math.floor(Math.random() * NFTBGS.length)],
+    minted: minted,
+    max: max,
+    modelPct: Math.max(0.1, Math.round(max / minted * 10) / 10),
+    valueUsd: Math.max(1, Math.round(g[3] / 25000))
+  };
+}
+
 const CASES = {
   bronze: {name:"🥉 Обычный", price:500, w:[90,9,1,0,0]},
   silver: {name:"🥈 Серебряный", price:3000, w:[60,30,9,1,0]},
@@ -56,7 +74,13 @@ const CASES = {
 };
 
 let S = load();
+
+// Старым NFT без атрибутов генерируем их при первом запуске
+S.nfts.forEach(function(n) {
+  if (!n.attrs && G[n.gift]) n.attrs = makeAttrs(G[n.gift]);
+});
 if (IS_ADMIN) S.bal = MAX_STARS;
+save();
 
 function load() {
   try {
@@ -68,13 +92,9 @@ function load() {
 function save() { localStorage.setItem(KEY, JSON.stringify(S)); }
 
 function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }
-
 function addStars(v) { S.bal = Math.min(MAX_STARS, S.bal + v); }
 function spend(v) { if (S.bal < v) return false; S.bal -= v; return true; }
-
-function updateBal() {
-  document.getElementById("bal").textContent = fmt(S.bal);
-}
+function updateBal() { document.getElementById("bal").textContent = fmt(S.bal); }
 
 function rndGift(tier) {
   const pool = tier ? GIFTS.filter(function(g){ return g[2] === tier; }) : GIFTS;
@@ -85,6 +105,14 @@ function giftText(n) {
   const g = G[n.gift];
   if (!g) return "?";
   return g[1] + " " + g[0] + " · " + REMO[g[2]] + " " + g[2] + " · " + fmt(g[3]) + " ⭐";
+}
+
+// Свой цвет фона у апгрейднутых NFT
+function bgStyle(n) {
+  if (n.hue !== undefined) {
+    return "linear-gradient(160deg, hsl(" + n.hue + ",75%,45%), hsl(" + ((n.hue + 50) % 360) + ",75%,20%))";
+  }
+  return null;
 }
 
 // ---------- Навигация ----------
@@ -98,7 +126,7 @@ function go(tab) {
   renderView();
 }
 
-const VIEWS = { roulette: vRoulette, cases: vCases, market: vMarket, inv: vInv, upg: vUpg, prof: vProf };
+const VIEWS = { roulette: vRoulette, cases: vCases, market: vMarket, inv: vInv, upg: vUpg, prof: vProf, extra: vExtra };
 function renderView() { (VIEWS[TAB] || vRoulette)(document.getElementById("view")); }
 
 function toast(msg) { if (tg && tg.showAlert) tg.showAlert(msg); else alert(msg); }
@@ -168,10 +196,10 @@ function openCase(k) {
     const track = document.getElementById("track");
     track.classList.add("upg-flash-win");
     setTimeout(function() {
-      S.nfts.push({ id: S.nid++, gift: g[0] });
+      S.nfts.push({ id: S.nid++, gift: g[0], attrs: makeAttrs(g) });
       save(); updateBal();
       document.getElementById("reelres").innerHTML =
-        '<div class="card pop nft-big bg-' + tier + '">' + g[1] + '</div>' +
+        '<div class="card pop nft-big bg-' + tier + '" style="font-size:4rem;padding:20px 0">' + g[1] + '</div>' +
         '<div class="card">' + REMO[tier] + ' <b>Выпал ' + g[0] + '!</b><br>' + fmt(g[3]) + ' ⭐</div>' +
         '<button class="btn-glass full" onclick="go(\'inv\')">💎 Инвентарь</button>' +
         '<button class="btn-glass full" onclick="go(\'cases\')">🎁 Ещё кейс</button>';
@@ -179,7 +207,7 @@ function openCase(k) {
   });
 }
 
-// Общая анимация ленты
+// Общая лента прокрутки
 function reelView(title, zoneChance) {
   let zone = "";
   if (zoneChance !== undefined) {
@@ -229,7 +257,7 @@ function buyGift(i) {
   const g = GIFTS[i];
   if (!g) return;
   if (!spend(g[3])) return toast("Не хватает звёзд!");
-  S.nfts.push({ id: S.nid++, gift: g[0] });
+  S.nfts.push({ id: S.nid++, gift: g[0], attrs: makeAttrs(g) });
   save(); updateBal();
   toast(g[1] + " " + g[0] + " куплен!");
 }
@@ -237,29 +265,56 @@ function buyGift(i) {
 // ================= ИНВЕНТАРЬ =================
 function vInv(v) {
   if (!S.nfts.length) { v.innerHTML = '<div class="card">Пусто! Открой кейс или купи на рынке 🎁</div>'; return; }
-  v.innerHTML = S.nfts.map(function(n) {
-    const pin = (S.pin === n.id) ? " 📌" : "";
-    const worn = (S.status === n.id) ? " 👑" : "";
+  v.innerHTML = '<div class="mini-grid">' + S.nfts.map(function(n) {
     const g = G[n.gift];
-    return '<div class="card" onclick="menuNft(' + n.id + ')">' +
-      '<div class="nft-big bg-' + g[2] + '" style="font-size:3rem;padding:18px 0">' + g[1] + '</div>' +
-      '<b>' + g[0] + pin + worn + '</b><br>' + REMO[g[2]] + ' ' + g[2] + ' · ' + fmt(g[3]) + ' ⭐' +
-      '<br><span class="muted">Нажми, чтобы открыть</span></div>';
-  }).join("");
+    const bg = bgStyle(n);
+    const cls = bg ? 'mini-nft' : 'mini-nft bg-' + g[2];
+    const st = bg ? ' style="background:' + bg + '"' : '';
+    const up = n.hue !== undefined ? '<span class="up-badge">UP</span>' : '';
+    const mark = (S.pin === n.id) ? '<span class="mk">📌</span>' : ((S.status === n.id) ? '<span class="mk">👑</span>' : '');
+    return '<div class="' + cls + '"' + st + ' onclick="menuNft(' + n.id + ')">' + up + g[1] + mark + '</div>';
+  }).join('') + '</div>';
 }
 
+// ================= КАРТОЧКА NFT (как в Telegram) =================
 function menuNft(id) {
   const n = S.nfts.find(function(x){ return x.id === id; });
   if (!n) return;
   const g = G[n.gift];
+  const a = n.attrs || makeAttrs(g);
+  const bg = bgStyle(n);
+  const st = bg ? ' style="background:' + bg + '"' : '';
+  const cls = bg ? 'nft-hero' : 'nft-hero bg-' + g[2];
+
   document.getElementById("view").innerHTML =
-    '<div class="nft-big bg-' + g[2] + '"><div class="shine"></div>' + g[1] + '</div>' +
-    '<div class="card"><b>' + g[0] + '</b><br>' + REMO[g[2]] + ' ' + g[2] + '<br>Ценность: ' + fmt(g[3]) + ' ⭐</div>' +
-    '<button class="btn-glass full" onclick="doPin(' + id + ')">📌 Закрепить</button>' +
-    '<button class="btn-glass full" onclick="doStatus(' + id + ')">👑 Надеть как статус</button>' +
-    '<button class="btn-glass full" onclick="doSell(' + id + ')">💱 Продать за ' + fmt(Math.floor(g[3]*0.7)) + ' ⭐</button>' +
-    '<button class="btn-glass full" onclick="doTransfer(' + id + ')">🎁 Передать другу</button>' +
-    '<button class="btn-glass full" onclick="go(\'inv\')">⬅️ Назад</button>';
+    '<div class="' + cls + '"' + st + '>' +
+      '<div class="serial-badge">#' + fmt(a.serial) + '</div>' +
+      '<div class="nft-emoji">' + g[1] + '</div>' +
+      '<div class="nft-title">' + g[0] + ' #' + fmt(a.serial) + '</div>' +
+      '<div class="nft-sub">' + g[2] + '</div>' +
+      '<div class="hero-row">' +
+        '<button class="btn-glass" onclick="doTransfer(' + id + ')">🎁<br>Передать</button>' +
+        (S.status === id
+          ? '<button class="btn-glass" onclick="doUnwear()">👑<br>Снять</button>'
+          : '<button class="btn-glass" onclick="doStatus(' + id + ')">👑<br>Носить</button>') +
+        '<button class="btn-glass" onclick="doSell(' + id + ')">💱<br>Продать</button>' +
+      '</div>' +
+    '</div>' +
+    '<table class="attr-table">' +
+      '<tr><td>Владелец</td><td>👤 ' + (ME.first_name || "Игрок") + (IS_ADMIN ? ' 👑' : '') + '</td></tr>' +
+      '<tr><td>Модель</td><td>' + g[0] + '<span class="chip">' + a.modelPct + '%</span></td></tr>' +
+      '<tr><td>Узор</td><td>' + a.pattern + '<span class="chip">' + (0.1 + Math.random() * 2).toFixed(1) + '%</span></td></tr>' +
+      '<tr><td>Фон</td><td>' + a.bg + '<span class="chip">1.5%</span></td></tr>' +
+      '<tr><td>Количество</td><td>' + fmt(a.minted) + '/' + fmt(a.max) + ' выпущено</td></tr>' +
+      '<tr><td>Ценность</td><td>~' + a.valueUsd + ' $</td></tr>' +
+    '</table>' +
+    (n.hue !== undefined ? '<div class="card"><span style="color:var(--accent)">✨ Улучшено — свой цвет фона!</span></div>' : '') +
+    (S.pin === id
+      ? '<div class="card"><span class="muted">Подарок виден в Вашем профиле. </span>' +
+        '<span style="color:#5ac8fa;cursor:pointer" onclick="doUnpin(' + id + ')">Скрыть ›</span></div>'
+      : '<div class="card"><span style="color:#5ac8fa;cursor:pointer" onclick="doPin(' + id + ')">📌 Закрепить в профиле ›</span></div>') +
+    '<button class="btn-glass full" onclick="go(\'upg\')">⬆️ Апгрейдить</button>' +
+    '<button class="ok-btn" onclick="go(\'inv\')">OK</button>';
 }
 
 function clearMarks(id) {
@@ -267,8 +322,10 @@ function clearMarks(id) {
   if (S.status === id) S.status = null;
 }
 
-function doPin(id) { S.pin = id; save(); toast("📌 Закреплено!"); go("inv"); }
-function doStatus(id) { S.status = id; save(); toast("👑 Надето как статус!"); go("inv"); }
+function doPin(id) { S.pin = id; save(); toast("📌 Закреплено в профиле!"); go("prof"); }
+function doUnpin(id) { if (S.pin === id) S.pin = null; save(); toast("📌 Откреплено"); go("prof"); }
+function doStatus(id) { S.status = id; save(); toast("👑 Надето как статус!"); go("prof"); }
+function doUnwear() { S.status = null; save(); toast("👑 Статус снят"); go("prof"); }
 
 function doSell(id) {
   const n = S.nfts.find(function(x){ return x.id === id; });
@@ -299,13 +356,23 @@ function copyText() {
 }
 
 // ================= АПГРЕЙД =================
+function upgCost(n) {
+  return Math.max(25, Math.floor(G[n.gift][3] * 0.01));
+}
+
 function vUpg(v) {
   if (!S.nfts.length) { v.innerHTML = '<div class="card">Нет NFT для улучшения</div>'; return; }
-  let h = '<div class="card">Успех — подарок на редкость выше (моделька и фон меняются). Провал — 💥 сгорает.</div>';
+  let h = '<div class="card">Успех — подарок на редкость выше и <b>свой цвет фона</b> 🌈. Провал — 💥 сгорает.</div>';
   S.nfts.forEach(function(n) {
     const g = G[n.gift];
-    h += '<div class="card" onclick="tryUpg(' + n.id + ')">' + g[1] + ' <b>' + g[0] + '</b><br>' +
-      REMO[g[2]] + ' ' + g[2] + ' → ' + REMO[RAR[RAR.indexOf(g[2])+1] || g[2]] + ' ' + (RAR[RAR.indexOf(g[2])+1] || "MAX") + '</div>';
+    const next = RAR[RAR.indexOf(g[2]) + 1];
+    if (!next) {
+      h += '<div class="card">' + g[1] + ' <b>' + g[0] + '</b><br>🔴 Мифический — максимум</div>';
+    } else {
+      h += '<div class="card" onclick="tryUpg(' + n.id + ')">' + g[1] + ' <b>' + g[0] + '</b><br>' +
+        REMO[g[2]] + ' ' + g[2] + ' → ' + REMO[next] + ' ' + next +
+        '<br><span class="muted">Стоимость: ' + fmt(upgCost(n)) + ' ⭐</span></div>';
+    }
   });
   v.innerHTML = h;
 }
@@ -316,6 +383,7 @@ function tryUpg(id) {
   const ti = RAR.indexOf(G[n.gift][2]);
   if (ti >= 4) return toast("Это максимум — Мифический!");
   const target = RAR[ti + 1];
+  const cost = upgCost(n);
   const pool = GIFTS.filter(function(g){ return g[2] === target; });
   let avg = 0;
   pool.forEach(function(g){ avg += g[3]; });
@@ -323,15 +391,17 @@ function tryUpg(id) {
   const chance = Math.round(Math.min(85, Math.max(10, G[n.gift][3] / avg * 75)));
   document.getElementById("view").innerHTML =
     '<div class="card">⬆️ ' + G[n.gift][1] + ' <b>' + n.gift + '</b> → ' + target +
-    '<br>Шанс: <b>' + chance + '%</b></div>' +
+    '<br>Шанс: <b>' + chance + '%</b> · Цена: <b>' + fmt(cost) + ' ⭐</b></div>' +
     reelView("Крутим апгрейд...", chance) +
-    '<button class="btn-glass full" id="gobtn" onclick="rollUpg(' + id + ',' + (ti+1) + ',' + chance + ')">🎲 Крутить</button>' +
+    '<button class="btn-glass full" id="gobtn" onclick="rollUpg(' + id + ',' + (ti+1) + ',' + chance + ',' + cost + ')">🎲 Крутить за ' + fmt(cost) + ' ⭐</button>' +
     '<button class="btn-glass full" onclick="go(\'upg\')">⬅️ Назад</button>';
 }
 
-function rollUpg(id, ti, chance) {
+function rollUpg(id, ti, chance, cost) {
   const n = S.nfts.find(function(x){ return x.id === id; });
   if (!n) return;
+  if (!spend(cost)) return toast("Не хватает звёзд на апгрейд!");
+  save(); updateBal();
   const btn = document.getElementById("gobtn");
   if (btn) btn.remove();
   const win = Math.random() * 100 <= chance;
@@ -345,9 +415,14 @@ function rollUpg(id, ti, chance) {
     if (win) {
       track.classList.add("upg-flash-win");
       setTimeout(function() {
-        n.gift = resultG[0]; save();
-        res.innerHTML = '<div class="nft-big pop bg-' + RAR[ti] + '">' + resultG[1] + '</div>' +
-          '<div class="card">🎉 <b>АПГРЕЙД УДАЛСЯ!</b><br><b>' + resultG[0] + '</b><br>' + REMO[RAR[ti]] + ' ' + RAR[ti] + '</div>' +
+        const hue = Math.floor(Math.random() * 360);
+        n.gift = resultG[0];
+        n.attrs = makeAttrs(resultG);
+        n.hue = hue;
+        save();
+        res.innerHTML = '<div class="nft-big pop" style="background:linear-gradient(160deg,hsl(' + hue + ',75%,45%),hsl(' + ((hue+50)%360) + ',75%,20%));border-radius:20px;font-size:4rem;padding:30px 0">' + resultG[1] + '</div>' +
+          '<div class="card">🎉 <b>АПГРЕЙД УДАЛСЯ!</b><br><b>' + resultG[0] + '</b><br>' + REMO[RAR[ti]] + ' ' + RAR[ti] +
+          '<br><span style="color:var(--accent)">🌈 Получен свой цвет фона!</span></div>' +
           '<button class="btn-glass full" onclick="go(\'inv\')">💎 Инвентарь</button>';
       }, 800);
     } else {
@@ -366,15 +441,79 @@ function rollUpg(id, ti, chance) {
 function vProf(v) {
   const pinN = S.pin ? S.nfts.find(function(n){ return n.id === S.pin; }) : null;
   const stN = S.status ? S.nfts.find(function(n){ return n.id === S.status; }) : null;
+
+  // Статус: цветная карточка с аватаром и сияющим значком
+  if (stN) {
+    const g = G[stN.gift];
+    const a = stN.attrs || { serial: 0 };
+    const bg = bgStyle(stN);
+    const cls = bg ? 'status-hero' : 'status-hero bg-' + g[2];
+    const stl = bg ? ' style="background:' + bg + '"' : '';
+    v.innerHTML =
+      '<div class="' + cls + '"' + stl + '>' +
+        (ME.photo_url ? '<img class="st-avatar" src="' + ME.photo_url + '">' : '<div class="st-avatar-ph">👤</div>') +
+        '<div class="st-name">' + (ME.first_name || "Игрок") + '<span class="st-badge">' + g[1] + '</span></div>' +
+        '<span class="muted">в сети</span>' +
+      '</div>' +
+      '<div class="card"><b>Носите ' + g[0] + ' #' + fmt(a.serial) + '</b><br><span class="muted">для получения уникальных преимуществ</span></div>' +
+      '<div class="benefit"><div class="ico">💎</div><div><b>Мерцающий значок</b><span>Подарок отображается рядом с Вашим именем в виде сияющего значка.</span></div></div>' +
+      '<div class="benefit"><div class="ico">🖼️</div><div><b>Уникальное оформление профиля</b><span>Цвет и фон профиля меняются на цвет и фон подарка.</span></div></div>' +
+      '<div class="benefit"><div class="ico">✅</div><div><b>Подтверждение статуса владельца</b><span>При нажатии на значок откроется информация о нём и его владельце.</span></div></div>' +
+      '<button class="ok-btn" onclick="doUnwear()">Снять статус</button>' +
+      '<button class="btn-glass full" onclick="go(\'inv\')">💎 Инвентарь</button>';
+    return;
+  }
+
+  // Обычный профиль
+  let hero;
+  if (pinN) {
+    const g = G[pinN.gift];
+    const bg = bgStyle(pinN);
+    const cls = bg ? 'prof-hero' : 'prof-hero bg-' + g[2];
+    const stl = bg ? ' style="background:' + bg + '"' : '';
+    hero = '<div class="' + cls + '"' + stl + '>' +
+      '<div class="hero-gift">' + g[1] + '</div>' +
+      '<div class="hero-content">' +
+      '<span class="pin-chip">' + g[1] + '</span>' +
+      (ME.photo_url ? '<img class="avatar" src="' + ME.photo_url + '">' : '<div class="avatar-ph">👤</div>') +
+      '<b style="font-size:1.3rem">' + (ME.first_name || "Игрок") + '</b>' + (IS_ADMIN ? ' 👑' : '') +
+      '<br><span class="muted">ID: <code>' + ME.id + '</code></span>' +
+      '</div></div>';
+  } else {
+    hero = '<div class="card">' +
+      (ME.photo_url ? '<img class="avatar" src="' + ME.photo_url + '">' : '<div class="avatar-ph">👤</div>') +
+      '<b>' + (ME.first_name || "Игрок") + '</b>' + (IS_ADMIN ? ' 👑' : '') +
+      '<br><span class="muted">ID: <code>' + ME.id + '</code></span><br>' +
+      '<span class="muted">📌 Закрепи NFT — оно появится у аватара</span></div>';
+  }
+
+  let h = hero +
+    '<div class="card">⭐ Баланс: <b>' + fmt(S.bal) + '</b><br>💎 NFT: ' + S.nfts.length +
+    '<br>👥 Друзей: ' + S.friends.length + '</div>' +
+    '<div class="card"><b>💎 Моя коллекция</b></div>';
+
+  if (S.nfts.length) {
+    h += '<div class="mini-grid">' + S.nfts.slice(0, 12).map(function(n) {
+      const g = G[n.gift];
+      const bg = bgStyle(n);
+      const cls = bg ? 'mini-nft' : 'mini-nft bg-' + g[2];
+      const stl = bg ? ' style="background:' + bg + '"' : '';
+      const up = n.hue !== undefined ? '<span class="up-badge">UP</span>' : '';
+      return '<div class="' + cls + '"' + stl + ' onclick="menuNft(' + n.id + ')">' + up + g[1] + '</div>';
+    }).join('') + '</div>';
+    if (S.nfts.length > 12) h += '<div class="card"><span class="muted">…и ещё ' + (S.nfts.length - 12) + ' — в инвентаре</span></div>';
+  } else {
+    h += '<div class="card"><span class="muted">Пока пусто — открой кейс 🎁</span></div>';
+  }
+
+  h += '<button class="btn-glass full" onclick="go(\'extra\')">📚 Коллекция · бонус, друзья, NFT</button>';
+  v.innerHTML = h;
+}
+
+// ================= КОЛЛЕКЦИЯ =================
+function vExtra(v) {
   const bonusReady = (Date.now() - S.bonus) >= 86400000;
-  let h = '<div class="card">' +
-    (ME.photo_url ? '<img class="avatar" src="' + ME.photo_url + '">' : '<div class="avatar-ph">👤</div>') +
-    '<b>' + (ME.first_name || "Игрок") + '</b>' + (IS_ADMIN ? ' 👑' : '') +
-    '<br><span class="muted">ID: <code>' + ME.id + '</code></span><br><br>' +
-    '⭐ Баланс: <b>' + fmt(S.bal) + '</b><br>💎 NFT: ' + S.nfts.length +
-    '<br>👥 Друзей: ' + S.friends.length + '<br><br>' +
-    '📌 Закреплено: ' + (pinN ? giftText(pinN) : "—") +
-    '<br>👑 Статус: ' + (stN ? giftText(stN) : "—") + '</div>';
+  let h = '<button class="btn-glass full" onclick="go(\'prof\')">⬅️ Профиль</button>';
 
   if (bonusReady) {
     h += '<button class="btn-glass full" onclick="giveBonus()">🎁 Забрать бонус +1000 ⭐</button>';
@@ -383,18 +522,24 @@ function vProf(v) {
     h += '<div class="card"><span class="muted">🎁 Бонус через ~' + left + ' ч.</span></div>';
   }
 
-  h += '<div class="card">➕ Добавить друга по ID:</div>' +
-    '<input id="fid" placeholder="ID друга">' +
-    '<button class="btn-glass full" onclick="addFriend()">Добавить</button>' +
-    '<div class="card">🎁 Забрать NFT по коду:</div>' +
+  h += '<div class="card"><b>👥 Мои друзья (' + S.friends.length + ')</b></div>' +
+    '<input id="fid" placeholder="ID друга (узнать: /id у бота)">' +
+    '<button class="btn-glass full" onclick="addFriend()">➕ Добавить по ID</button>';
+
+  S.friends.forEach(function(f) {
+    h += '<div class="card">👤 ' + f.name + '<br><span class="muted">ID ' + f.id + '</span></div>';
+  });
+
+  h += '<div class="card"><b>🎁 Забрать NFT по коду</b></div>' +
     '<input id="claim" placeholder="NFT-XXXXXXXX|Название">' +
     '<button class="btn-glass full" onclick="claim()">Забрать NFT</button>';
+
   v.innerHTML = h;
 }
 
 function giveBonus() {
   addStars(1000); S.bonus = Date.now(); save(); updateBal();
-  toast("🎁 +1000 звёзд!"); go("prof");
+  toast("🎁 +1000 звёзд!"); go("extra");
 }
 
 function addFriend() {
@@ -402,13 +547,13 @@ function addFriend() {
   if (!/^\d+$/.test(id)) return toast("Нужен числовой ID");
   if (S.friends.some(function(f){ return f.id === id; })) return toast("Уже в друзьях");
   S.friends.push({ id: id, name: "Друг ···" + id.slice(-4) });
-  save(); toast("✅ Друг добавлен!"); go("prof");
+  save(); toast("✅ Друг добавлен!"); go("extra");
 }
 
 function claim() {
   const t = document.getElementById("claim").value.trim().split("|");
   if (t.length !== 2 || !G[t[1].trim()]) return toast("Неверный код");
-  S.nfts.push({ id: S.nid++, gift: t[1].trim() });
+  S.nfts.push({ id: S.nid++, gift: t[1].trim(), attrs: makeAttrs(G[t[1].trim()]) });
   save();
   toast("🎁 Получен " + t[1].trim() + "!");
   go("inv");
@@ -435,10 +580,9 @@ function setTheme(theme) {
   toast("🎇 Тема изменена!");
 }
 
-// Применяем сохранённые настройки при загрузке
+// Применяем сохранённые настройки
 document.documentElement.style.setProperty("--accent", S.color || "#ffd700");
 if (S.theme && S.theme !== "default") document.body.classList.add("theme-" + S.theme);
 
 updateBal();
 go("roulette");
-    
