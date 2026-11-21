@@ -1,65 +1,65 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>NFT Casino</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>NFT CASINO</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="app">
-    <header class="graffiti-header">NFT CASINO</header>
 
-    <div class="top-bar">
-      <div class="balance-box">
-        <span class="star">⭐</span>
-        <span id="bal">0</span>
-      </div>
-      <div class="theme-controls">
-        <button class="btn-glass mini" title="Цвета" onclick="toggleColorPicker()">🎨</button>
-        <button class="btn-glass mini" title="Темы" onclick="toggleThemePicker()">🎇</button>
-      </div>
-    </div>
+<header class="graffiti-header">NFT CASINO</header>
 
-    <nav class="glass-nav">
-      <button class="glass-btn active" onclick="go('roulette')">🎰 Рулетка</button>
-      <button class="glass-btn" onclick="go('cases')">🎁 Кейсы</button>
-      <button class="glass-btn" onclick="go('market')">🛍️ Рынок</button>
-      <button class="glass-btn" onclick="go('inv')">💎 Инвентарь</button>
-      <button class="glass-btn" onclick="go('upg')">⬆️ Апгрейд</button>
-      <button class="glass-btn" onclick="go('prof')">👤 Профиль</button>
-    </nav>
-
-    <main id="view"></main>
-
-    <!-- Поп-апы -->
-    <div id="color-picker" class="popup glass-panel">
-      <h3>Цвета</h3>
-      <div class="color-grid">
-        <button class="color-btn" style="background:#FFD700" onclick="setColor('#FFD700')"></button>
-        <button class="color-btn" style="background:#FF4500" onclick="setColor('#FF4500')"></button>
-        <button class="color-btn" style="background:#00BFFF" onclick="setColor('#00BFFF')"></button>
-        <button class="color-btn" style="background:#808080" onclick="setColor('#808080')"></button>
-        <button class="color-btn" style="background:#000000" onclick="setColor('#000000')"></button>
-        <button class="color-btn" style="background:#DAA520" onclick="setColor('#DAA520')"></button>
-        <button class="color-btn" style="background:#A52A2A" onclick="setColor('#A52A2A')"></button>
-      </div>
-      <button class="btn-glass" onclick="toggleColorPicker()">Закрыть</button>
-    </div>
-
-    <div id="theme-picker" class="popup glass-panel">
-      <h3>Темы</h3>
-      <div class="theme-grid">
-        <button class="theme-btn" onclick="setTheme('default')">🌑 Обычная</button>
-        <button class="theme-btn" onclick="setTheme('xmas')">🎄 Новый год</button>
-        <button class="theme-btn" onclick="setTheme('halloween')">🎃 Хеллоуин</button>
-        <button class="theme-btn" onclick="setTheme('chinese')">🏮 Китайский НГ</button>
-      </div>
-      <button class="btn-glass" onclick="toggleThemePicker()">Закрыть</button>
-    </div>
+<div class="top-bar">
+  <div class="balance-box">
+    <span class="star">⭐</span>
+    <span id="bal">0</span>
   </div>
+  <div class="theme-controls">
+    <button class="btn-glass mini" onclick="toggleColorPicker()">🎨</button>
+    <button class="btn-glass mini" onclick="toggleThemePicker()">🎇</button>
+  </div>
+</div>
 
-  <script src="app.js"></script>
+<nav class="glass-nav">
+  <button class="glass-btn" data-tab="roulette" onclick="go('roulette')">🎰 Рулетка</button>
+  <button class="glass-btn" data-tab="cases"    onclick="go('cases')">🎁 Кейсы</button>
+  <button class="glass-btn" data-tab="market"   onclick="go('market')">🛍️ Рынок</button>
+  <button class="glass-btn" data-tab="inv"      onclick="go('inv')">💎 NFT</button>
+  <button class="glass-btn" data-tab="upg"      onclick="go('upg')">⬆️ Апгрейд</button>
+  <button class="glass-btn" data-tab="prof"     onclick="go('prof')">👤 Профиль</button>
+</nav>
+
+<main id="view"></main>
+
+<div id="color-picker" class="popup glass-panel">
+  <h3>🎨 Цвет оформления</h3>
+  <div class="color-grid">
+    <button class="color-btn" style="background:#ffd700" onclick="setColor('#ffd700')"></button>
+    <button class="color-btn" style="background:#ff3b30" onclick="setColor('#ff3b30')"></button>
+    <button class="color-btn" style="background:#5ac8fa" onclick="setColor('#5ac8fa')"></button>
+    <button class="color-btn" style="background:#8e8e93" onclick="setColor('#8e8e93')"></button>
+    <button class="color-btn" style="background:#1c1c1e" onclick="setColor('#ffffff')"></button>
+    <button class="color-btn" style="background:#d4af37" onclick="setColor('#d4af37')"></button>
+    <button class="color-btn" style="background:#8b5a2b" onclick="setColor('#8b5a2b')"></button>
+    <button class="color-btn" style="background:#34c759" onclick="setColor('#34c759')"></button>
+    <button class="color-btn" style="background:#af52de" onclick="setColor('#af52de')"></button>
+  </div>
+  <button class="btn-glass" onclick="toggleColorPicker()">Закрыть</button>
+</div>
+
+<div id="theme-picker" class="popup glass-panel">
+  <h3>🎇 Быстрая тема</h3>
+  <div class="theme-list">
+    <button class="theme-btn" onclick="setTheme('default')">🌑 Обычная</button>
+    <button class="theme-btn" onclick="setTheme('xmas')">🎄 Новый год</button>
+    <button class="theme-btn" onclick="setTheme('halloween')">🎃 Хеллоуин</button>
+    <button class="theme-btn" onclick="setTheme('chinese')">🏮 Китайский НГ</button>
+  </div>
+  <button class="btn-glass" onclick="toggleThemePicker()">Закрыть</button>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>
