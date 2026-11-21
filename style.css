@@ -262,4 +262,138 @@ input::placeholder { color: rgba(255,255,255,.4); }
 .muted { opacity: .55; font-size: .85rem; }
 .row { display: flex; gap: 8px; }
 .row > .btn-glass { flex: 1; }
-             
+             /* Карточка NFT как в Telegram */
+.nft-hero {
+  position: relative;
+  border-radius: 20px;
+  padding: 40px 14px 18px;
+  text-align: center;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.nft-hero .nft-emoji {
+  font-size: 5rem;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,.5));
+  margin: 10px 0;
+}
+.nft-title { font-size: 1.5rem; font-weight: 800; margin-top: 6px; }
+.nft-sub { opacity: .7; font-style: italic; font-size: .9rem; margin-top: 4px; }
+
+.serial-badge {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 10px;
+  padding: 3px 10px;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #fff;
+  z-index: 2;
+}
+
+/* Кнопки Передать / Носить / Продать в один ряд */
+.hero-row { display: flex; gap: 8px; margin-top: 12px; }
+.hero-row .btn-glass { flex: 1; padding: 12px 4px; font-size: .85rem; }
+
+/* Таблица атрибутов */
+.attr-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+.attr-table td {
+  padding: 10px 12px;
+  font-size: .88rem;
+  background: rgba(255,255,255,.05);
+  border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.attr-table tr:last-child td { border-bottom: none; }
+.attr-table td:first-child { font-weight: 700; width: 38%; }
+
+.chip {
+  display: inline-block;
+  background: rgba(70,110,160,.55);
+  border-radius: 8px;
+  padding: 2px 8px;
+  font-size: .75rem;
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+.ok-btn {
+  display: block;
+  width: 100%;
+  background: #2f6fed;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 14px;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.ok-btn:active { transform: scale(.97); }
+
+/* Закреплённый подарок рядом с аватаром */
+.pin-chip {
+  position: absolute;
+  left: 50%;
+  margin-left: -58px;
+  top: 4px;
+  font-size: 1.6rem;
+  filter: drop-shadow(0 0 8px var(--accent));
+  animation: pinPulse 2s infinite;
+  z-index: 3;
+}
+@keyframes pinPulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+.prof-hero { position: relative; }
+
+/* Статус: карточка как в Telegram при «Носить» */
+.status-hero {
+  border-radius: 20px;
+  padding: 30px 16px;
+  text-align: center;
+  margin-bottom: 12px;
+  position: relative;
+}
+.status-hero .st-avatar {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+.status-hero .st-avatar-ph {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem;
+  margin: 0 auto 10px;
+}
+.st-name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+.st-badge {
+  display: inline-block;
+  font-size: 1.5rem;
+  margin-left: 6px;
+  filter: drop-shadow(0 0 10px #fff);
+  animation: pinPulse 1.6s infinite;
+}
+.benefit { display: flex; gap: 12px; text-align: left; margin-bottom: 12px; }
+.benefit .ico { font-size: 1.6rem; flex: 0 0 auto; }
+.benefit b { display: block; margin-bottom: 2px; }
+.benefit span { opacity: .7; font-size: .88rem; }
