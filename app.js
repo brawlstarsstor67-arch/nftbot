@@ -369,4 +369,99 @@ function profileScreen() {
   const avatarHtml = `
     <div class="tg-avatar-ring">
       <div class="ph">��
+        // Имитация аватара Telegram
+  const avatarHtml = `
+    <div class="tg-avatar-ring">
+      <div class="ph">🖼️</div>
+    </div>
+  `;
+
+  // Имитация паттерна фона
+  const patternHtml = `
+    <div class="tg-pattern">
+      <svg viewBox="0 0 100 100" width="100%" height="100%">
+        <circle cx="50" cy="50" r="12" fill="rgba(255,255,255,0.06)" />
+        <circle cx="20" cy="80" r="8" fill="rgba(255,255,255,0.04)" />
+        <circle cx="80" cy="30" r="10" fill="rgba(255,255,255,0.05)" />
+      </svg>
+    </div>
+  `;
+
+  container.innerHTML = `
+    \${patternHtml}
+    <div class="tg-hero-corner l" onclick="toggleThemePicker()">🎨</div>
+    <div class="tg-hero-corner r" onclick="toggleColorPicker()">🎆</div>
+    \${avatarHtml}
+    <h2 class="tg-name">\${tg.initDataUnsafe?.user?.first_name || 'Гость'}</h2>
+    <p class="tg-status">${state.stars} ⭐ | Уровень ${state.upgTier}</p>
+    <div class="attr-table">
+      <tr><td>Баланс</td><td>\${state.balance.toLocaleString()} ⭐</td></tr>
+      <tr><td>NFT в коллекции</td><td>\${state.nfts.length}</td></tr>
+      <tr><td>Прогресс апгрейда</td><td>\${Math.floor(state.upgProgress * 100)}%</td></tr>
+      <tr><td>Следующий апгрейд</td><td>\${state.upgCost.toLocaleString()} ⭐</td></tr>
+    </div>
+    <button class="ok-btn" onclick="toggleStarsPicker()">Пополнить баланс</button>
+  `;
+  return container;
+}
+
+// === РЫНОК ===
+function marketScreen() {
+  const container = document.createElement('div');
+  container.className = 'card';
+  // Заглушка: в реальном проекте это будет fetch к API
+  const items = [
+    { em: '🎲', name: 'Кубик удачи', price: 350 },
+    { em: '🧊', name: 'Ледяной ключ', price: 1200 },
+    { em: '🗝️', name: 'Золотой ключ', price: 4500 },
+    { em: '📦', name: 'Кейс новичка', price: 500 },
+    { em: '💎', name: 'Кристалл силы', price: 2100 }
+  ];
+  let html = `<h3>🛒 Рынок</h3><p>Баланс: \${state.balance.toLocaleString()} ⭐</p>`;
+  items.forEach(i => {
+    html += `
+      <div class="market-item">
+        <div class="em">\${i.em}</div>
+        <div class="nm">\${i.name}</div>
+        <div class="pr">\${i.price.toLocaleString()} ⭐</div>
+        <button class="mini" onclick="buyMarketItem(\${i.price})">Купить</button>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+  return container;
+}
+
+function buyMarketItem(price) {
+  if (state.balance < price) return showToast('Недостаточно средств');
+  state.balance -= price;
+  // Добавляем в инвентарь
+  state.inventory.push({ em: '📦', name: 'Предмет с рынка', count: 1 });
+  saveState();
+  updateBalanceUI();
+  showToast('Покупка успешна');
+  go('inv');
+}
+
+// === УТИЛИТЫ ===
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = `
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.85); color: #fff; padding: 10px 18px;
+      border-radius: 12px; font-weight: 700; pointer-events: none;
+      z-index: 9999; opacity: 0; transition: opacity .3s;
+    `;
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = 1;
+  setTimeout(() => t.style.opacity = 0, 2500);
+}
+
+// === ЗАПУСК ===
+init();
       
