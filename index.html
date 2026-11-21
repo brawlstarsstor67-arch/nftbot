@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NFT CASINO</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@900&family=Rubik:wght@400;600;800&display=swap');
+:root{--gold:#ffd75e;--gold2:#ffb62e;--bg:#0b0b12;--card:#14141d;--line:#26262f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(900px 420px at 50% -120px,#1d1607 0%,#0b0b12 60%);color:#f2f2f2;font-family:Rubik,-apple-system,'Segoe UI',sans-serif;min-height:100vh;padding-bottom:96px}
+main section[hidden]{display:none}
+@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+@keyframes glowpulse{0%,100%{filter:drop-shadow(0 0 10px rgba(255,200,60,.35))}50%{filter:drop-shadow(0 0 22px rgba(255,200,60,.8))}}
+.top{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 12px 10px}
+.logo{font-family:'Unbounded',sans-serif;font-weight:900;font-size:32px;letter-spacing:2px;transform:skewX(-8deg) rotate(-2deg);background:linear-gradient(180deg,#fff6cf,#ffd75e 45%,#b8860b);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,200,60,.55));animation:glowpulse 2.6s infinite}
+.balpill{background:var(--card);border:1px solid var(--gold);color:var(--gold);border-radius:999px;padding:6px 18px;font-weight:800;box-shadow:0 0 16px rgba(255,215,94,.2)}
+.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:rgba(15,15,24,.95);border-top:1px solid var(--line);backdrop-filter:blur(8px);z-index:40}
+.tab{flex:1;background:none;border:0;color:#9aa3b8;font-family:inherit;font-size:10.5px;font-weight:600;padding:10px 2px 12px}
+.tab.on{color:var(--gold);text-shadow:0 0 10px rgba(255,215,94,.6)}
+.sec-title{margin:14px 12px 10px;font-size:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;margin:12px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.dim{color:#9aa3b8;font-size:13px}
+.center{text-align:center}
+.gold-text{color:var(--gold);font-weight:700}
+.text-dim{color:#9aa3b8}
+.btn{background:linear-gradient(180deg,#ffd75e,#f5a623);color:#1a1206;font-weight:800;border:0;border-radius:14px;padding:12px 18px;font-size:15px;font-family:inherit;box-shadow:0 4px 18px rgba(255,190,60,.35);cursor:pointer}
+.btn:active{transform:scale(.97)}
+.btn.gray{background:#26262f;color:#f2f2f2;box-shadow:none}
+.btn.red{background:linear-gradient(180deg,#ff6b7d,#c22b3f);color:#fff;box-shadow:0 4px 18px rgba(255,80,100,.3)}
+.btn.sm{padding:8px 10px;font-size:12px;border-radius:10px}
+.btn:disabled{opacity:.55}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:0 12px}
+.case{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-family:inherit;color:#f2f2f2}
+.case:active{transform:scale(.97)}
+.cface{font-size:40px;filter:drop-shadow(0 0 10px rgba(255,200,60,.4))}
+.cname{font-size:13px;font-weight:600}
+.cprice{font-size:13px;font-weight:800}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px;animation:pop .25s}
+.modal-content{background:#171722;border:1px solid #34343f;border-radius:20px;padding:18px;max-width:420px;width:100%;max-height:85vh;overflow:auto}
+.modal select,.modal input,.card select{width:100%;margin:8px 0;padding:10px;border-radius:10px;border:1px solid #34343f;background:#0e0e16;color:#f2f2f2;font-size:14px;font-family:inherit}
+.ncard{border-radius:18px;padding:16px;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.5);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.tcard{position:relative;padding:18px 10px}
+.crown{position:absolute;top:6px;left:10px}
+.pin{position:absolute;top:6px;right:10px}
+.bigpop{animation:pop .4s}
+.nc-emoji{font-size:44px;filter:drop-shadow(0 0 10px rgba(0,0,0,.4))}
+.nc-name{font-weight:800;margin:6px 0 2px}
+.nc-rar{font-size:13px;font-weight:700;margin-bottom:4px}
+.ring{width:150px;height:150px;border-radius:50%;margin:14px auto;display:flex;align-items:center;justify-content:center}
+.ring-in{width:118px;height:118px;border-radius:50%;background:#14141d;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:var(--gold)}
+.upg-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 0}
+.upg-row .ncard{flex:1;max-width:150px;padding:12px}
+.upg-arrow{font-weight:900;color:var(--gold);font-size:22px}
+.ribbon-wrap{position:relative;overflow:hidden;border-radius:14px;border:1px solid var(--line);background:#0e0e16;margin:10px 0}
+.ribbon{display:flex;gap:4px;padding:10px 0;will-change:transform}
+.rcard{flex:0 0 96px;height:120px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:34px;margin:0 2px}
+.rname{font-size:11px;font-weight:700;text-align:center;padding:0 4px;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.bt-head,.bt-score{display:flex;justify-content:space-between;align-items:center;gap:6px;font-weight:700}
+.bt-items{text-align:center;margin-top:10px;font-size:22px;letter-spacing:2px}
+.lead-row{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;margin:8px 12px;padding:12px 14px}
+.lead-row.me{border-color:var(--gold);box-shadow:0 0 14px rgba(255,215,94,.25)}
+.medal{width:36px;font-size:18px}
+.le{flex:1;font-weight:600}
+.lt{font-weight:800}
+.avatar{width:84px;height:84px;border-radius:50%;background:linear-gradient(160deg,#2b3040,#191c26);display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 8px;border:2px solid var(--gold);box-shadow:0 0 18px rgba(255,215,94,.35)}
+.props{width:100%;border-collapse:collapse;margin:12px 0}
+.props td{padding:8px 6px;border-bottom:1px solid var(--line);font-size:14px}
+.props td:first-child{color:#9aa3b8}
+.btnrow{display:flex;gap:8px;margin-top:10px}
+.btnrow .btn{flex:1;padding:10px 6px;font-size:13px}
+.codebox{font-family:monospace;font-size:20px;letter-spacing:2px;background:#0e0e16;border:1px dashed var(--gold);border-radius:12px;padding:12px;margin:12px 0;color:var(--gold);text-align:center}
+.market-header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.market-item{display:grid;grid-template-columns:1fr auto;gap:4px 10px;background:#0e0e16;border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}
+.mi-info{grid-column:1}
+.mi-name{font-weight:700}
+.mi-rar{font-size:12px;font-weight:700}
+.mi-price{color:var(--gold);font-weight:800;text-align:right}
+.mi-seller{grid-column:1/-1;font-size:12px;color:#9aa3b8}
+.btn-buy{grid-column:2;justify-self:end;padding:8px 14px;font-size:13px}
+.badge{font-size:12px;color:var(--gold)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo">NFT CASINO</div>
+  <div class="balpill">💰 <span id="bal">0</span> ⭐</div>
+</header>
+<nav class="tabs">
+  <button class="tab on" data-t="cases">🎰 Кейсы</button>
+  <button class="tab" data-t="market">💱 Рынок</button>
+  <button class="tab" data-t="upgrade">🔺 Апгрейдер</button>
+  <button class="tab" data-t="battle">⚔️ Батл</button>
+  <button class="tab" data-t="leaders">🏆 Лидеры</button>
+  <button class="tab" data-t="profile">👤 Профиль</button>
+</nav>
+<main>
+  <section id="cases" class="page-sec"></section>
+  <section id="market" class="page-sec" hidden></section>
+  <section id="upgrade" class="page-sec" hidden></section>
+  <section id="battle" class="page-sec" hidden></section>
+  <section id="leaders" class="page-sec" hidden></section>
+  <section id="profile" class="page-sec" hidden></section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
